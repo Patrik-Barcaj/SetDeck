@@ -1,42 +1,64 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #121212;
+    --foreground: #ffffff;
+    
+    --card: #181818;
+    --card-foreground: #ffffff;
+    
+    --popover: #282828;
+    --popover-foreground: #ffffff;
+    
+    --primary: #1DB954;
+    --primary-foreground: #000000;
+    
+    --secondary: #282828;
+    --secondary-foreground: #ffffff;
+    
+    --muted: #282828;
+    --muted-foreground: #b3b3b3;
+    
+    --accent: #1DB954;
+    --accent-foreground: #000000;
+    
+    --destructive: #e22134;
+    --destructive-foreground: #ffffff;
+    
+    --border: #282828;
+    --input: #282828;
+    --ring: #1DB954;
+    
+    --radius: 0.5rem;
   }
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+@layer utilities {
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(29, 185, 84, 0.5); /* Spotify Green */
   }
 }

@@ -1,0 +1,33 @@
+{
+  "type": "setlists",
+  "itemsPerPage": 20,
+  "page": 1,
+  "total": 1000,
+  "artist": {
+    "mbid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+    "name": "Metallica"
+  },
+  "setlist": [
+    {
+      "id": "1",
+      "eventDate": "01-01-2026",
+      "venue": {
+        "id": "v1",
+        "name": "Wembley",
+        "city": { "name": "London", "country": { "code": "GB", "name": "United Kingdom" } }
+      },
+      "sets": {
+        "set": [
+          {
+            "song": [
+              { "name": "Creeping Death" },
+              { "name": "Harvester of Sorrow" },
+              { "name": "Nothing Else Matters" },
+              { "name": "Enter Sandman" }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

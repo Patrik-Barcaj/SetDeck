@@ -1,95 +1,59 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+
+import { SearchBar } from '@/components/shared/SearchBar';
+import { useRecentSearches } from '@/hooks/useRecentSearches';
+import { ArtistCard } from '@/components/shared/ArtistCard';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const { recentSearches } = useRecentSearches();
+  const router = useRouter();
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+  return (
+    <main className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-gradient-to-b from-background via-background to-[#082010]">
+      {/* Background gradients */}
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-spotify-green/10 blur-[120px] pointer-events-none animate-mesh-flow" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-spotify-green/5 blur-[120px] pointer-events-none animate-mesh-flow" style={{ animationDelay: '5s' }} />
+
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-4xl mx-auto flex flex-col items-center text-center z-10"
+      >
+        <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight mb-6">
+          Prepare for the <span className="text-transparent bg-clip-text bg-gradient-to-r from-spotify-green to-emerald-300">Show</span>.
+        </h1>
+        <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-2xl font-medium leading-relaxed">
+          SetDeck aggregates an artist&apos;s recent setlists to create the ultimate live warm-up playlist on Spotify.
+        </p>
+
+        <div className="w-full mb-16">
+          <SearchBar />
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {recentSearches.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="w-full max-w-2xl text-left"
+          >
+            <h3 className="text-lg font-medium mb-4 text-muted-foreground">Recent Searches</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recentSearches.slice(0, 4).map((search) => (
+                <ArtistCard
+                  key={search.id}
+                  name={search.name}
+                  imageUrl={search.imageUrl}
+                  onClick={() => router.push(`/setlist/${search.id}`)}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </motion.div>
+    </main>
   );
 }
