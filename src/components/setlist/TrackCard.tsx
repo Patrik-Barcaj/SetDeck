@@ -2,10 +2,11 @@
 
 import { AggregatedTrack } from '@/types';
 import { LikelihoodBadge } from '../shared/LikelihoodBadge';
-import { Music, Trash2 } from 'lucide-react';
+import { Music, Trash2, Play, Square } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { useState, useRef } from 'react';
 
 interface TrackCardProps {
   track: AggregatedTrack;
@@ -32,6 +33,25 @@ export function TrackCard({ track, onRemove }: TrackCardProps) {
   const x = useMotionValue(0);
   // Fade background to red slightly when swiping
   const bgOpacity = useTransform(x, [-80, -20, 0], [1, 0, 0]);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const togglePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        // Find other audio elements and pause them
+        document.querySelectorAll('audio').forEach((el) => {
+          if (el !== audioRef.current) el.pause();
+        });
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
 
   return (
     <div
@@ -77,9 +97,28 @@ export function TrackCard({ track, onRemove }: TrackCardProps) {
           )}
         </div>
 
-        <div className="flex items-center flex-shrink-0">
+        <div className="flex items-center flex-shrink-0 gap-2">
+          {track.previewUrl && (
+            <button
+              onClick={togglePlay}
+              onPointerDown={(e) => e.stopPropagation()} // Prevent drag conflict
+              className="w-7 h-7 flex items-center justify-center rounded-full bg-setdeck-gold text-black hover:scale-110 active:scale-95 transition-transform"
+            >
+              {isPlaying ? <Square className="w-3 h-3 fill-black" /> : <Play className="w-3.5 h-3.5 fill-black ml-0.5" />}
+            </button>
+          )}
           <LikelihoodBadge type={track.badge} likelihood={track.likelihood} />
         </div>
+        
+        {track.previewUrl && (
+          <audio 
+            ref={audioRef} 
+            src={track.previewUrl} 
+            onEnded={() => setIsPlaying(false)}
+            onPause={() => setIsPlaying(false)}
+            onPlay={() => setIsPlaying(true)}
+          />
+        )}
       </motion.div>
     </div>
   );

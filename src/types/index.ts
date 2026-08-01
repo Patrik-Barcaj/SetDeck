@@ -45,6 +45,9 @@ export interface AggregatedTrack {
   isCover: boolean;
   coverArtist?: string;
   originalOrder: number; // Used to maintain logical flow
+  previewUrl?: string | null;
+  durationMs?: number;
+  spotifyUri?: string;
 }
 
 export interface SetlistData {

@@ -55,9 +55,9 @@ export function ActionBar() {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 p-4 md:p-6 bg-background/50 backdrop-blur-xl border-t border-border/30 z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-        <div className="max-w-4xl mx-auto flex items-center justify-center md:justify-between gap-4">
-          <div className="hidden md:flex flex-col gap-1">
+      <div className="fixed bottom-[90px] left-0 right-0 p-4 md:p-6 z-40 pointer-events-none">
+        <div className="max-w-4xl mx-auto flex items-center justify-center md:justify-end gap-4 pointer-events-auto">
+          <div className="hidden md:flex flex-col gap-1 text-right mr-4 bg-background/80 p-2 rounded-lg backdrop-blur-md">
             <p className="text-sm text-muted-foreground">
               <span className="font-bold text-foreground">{tracks.length}</span> tracks ready
             </p>

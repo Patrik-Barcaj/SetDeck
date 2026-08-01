@@ -4,6 +4,7 @@ import { aggregateTracks } from '@/utils/aggregateTracks';
 import { detectRegion } from '@/utils/detectRegion';
 import { redis } from '@/lib/redis';
 import { SetlistData } from '@/types';
+import { searchSpotifyTrack, getClientCredentialsToken } from '@/lib/spotify';
 
 export async function GET(
   request: Request,
@@ -29,11 +30,37 @@ export async function GET(
     const region = detectRegion(shows);
     const tourName = `${new Date().getFullYear()} ${region === 'World' ? 'Global' : region} Tour`;
 
+    let hydratedTracks = aggregated;
+    try {
+      const spotifyToken = await getClientCredentialsToken();
+      
+      // Hydrate all tracks concurrently to avoid waterfall
+      hydratedTracks = await Promise.all(
+        aggregated.map(async (track) => {
+          const searchArtist = track.isCover && track.coverArtist ? track.coverArtist : artistName;
+          const spotifyResult = await searchSpotifyTrack(searchArtist, track.name, spotifyToken);
+          
+          if (spotifyResult) {
+            return {
+              ...track,
+              spotifyUri: spotifyResult.uri,
+              previewUrl: spotifyResult.preview_url || null,
+              durationMs: spotifyResult.duration_ms,
+            };
+          }
+          return track;
+        })
+      );
+    } catch (spotifyErr) {
+      console.warn('Failed to hydrate Spotify data during aggregation:', spotifyErr);
+      // We continue with unhydrated tracks if Spotify fails
+    }
+
     const data: SetlistData = {
       mbid,
       artistName,
       tourName,
-      tracks: aggregated,
+      tracks: hydratedTracks,
       region,
       totalValidShows: shows.length,
     };

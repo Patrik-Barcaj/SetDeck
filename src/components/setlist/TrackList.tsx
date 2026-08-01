@@ -2,6 +2,7 @@
 
 import { useSetlistStore } from '@/hooks/useSetlistStore';
 import { TrackCard } from './TrackCard';
+import { AddTrackInput } from './AddTrackInput';
 import {
   DndContext,
   closestCenter,
@@ -71,6 +72,8 @@ export function TrackList() {
           </AnimatePresence>
         </SortableContext>
       </DndContext>
+      
+      <AddTrackInput />
     </div>
   );
 }
