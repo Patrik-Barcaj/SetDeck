@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ChevronLeft, LogOut, Disc, LogIn } from 'lucide-react';
@@ -51,7 +51,7 @@ export function TopHeader() {
           </div>
         ) : (
           <button
-            onClick={() => router.push('/api/auth/signin')}
+            onClick={() => signIn('spotify')}
             className="text-xs font-semibold text-muted-foreground hover:text-white transition-colors flex items-center gap-1"
           >
             <LogIn className="w-4 h-4" />
