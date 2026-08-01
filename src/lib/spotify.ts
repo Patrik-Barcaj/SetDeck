@@ -13,7 +13,7 @@ export async function getClientCredentialsToken() {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: 'grant_type=client_credentials',
-    next: { revalidate: 3000 }, // Spotify tokens expire in 1 hour (3600s)
+    next: { revalidate: 3000 },
   });
 
   if (!res.ok) {
@@ -39,7 +39,7 @@ export async function searchSpotifyArtists(query: string) {
   }
 
   const data = await res.json();
-  return data.artists.items;
+  return data.artists?.items || [];
 }
 
 export async function searchSpotifyTrack(
@@ -47,22 +47,47 @@ export async function searchSpotifyTrack(
   trackName: string,
   token: string
 ) {
-  const query = `artist:${artistName} track:${trackName}`;
-  const url = `${SPOTIFY_API_URL}/search?q=${encodeURIComponent(query)}&type=track&limit=1`;
+  const cleanTrack = trackName.replace(/[\(\[\{\/\\].*?[\)\]\}]/g, '').trim();
 
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) return null;
-
-  const data = await res.json();
-  if (data.tracks && data.tracks.items.length > 0) {
-    return data.tracks.items[0];
+  // Try field-filtered search first
+  try {
+    const q1 = `artist:${artistName} track:${cleanTrack || trackName}`;
+    const res1 = await fetch(`${SPOTIFY_API_URL}/search?q=${encodeURIComponent(q1)}&type=track&limit=1`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res1.ok) {
+      const data1 = await res1.json();
+      if (data1.tracks?.items?.length > 0) return data1.tracks.items[0];
+    }
+  } catch (e) {
+    console.warn('Field search failed:', e);
   }
+
+  // Fallback to broad text query
+  try {
+    const q2 = `${artistName} ${cleanTrack || trackName}`;
+    const res2 = await fetch(`${SPOTIFY_API_URL}/search?q=${encodeURIComponent(q2)}&type=track&limit=1`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res2.ok) {
+      const data2 = await res2.json();
+      if (data2.tracks?.items?.length > 0) return data2.tracks.items[0];
+    }
+  } catch (e) {
+    console.warn('Broad search failed:', e);
+  }
+
   return null;
+}
+
+export interface SpotifyPlaylist {
+  id: string;
+  name: string;
+  description?: string;
+  external_urls?: {
+    spotify?: string;
+  };
+  images?: Array<{ url: string }>;
 }
 
 export async function createSpotifyPlaylist(
@@ -72,35 +97,75 @@ export async function createSpotifyPlaylist(
   trackUris: string[],
   token: string,
   isPublic = false
-) {
-  // 1. Create Playlist
-  const createRes = await fetch(`${SPOTIFY_API_URL}/users/${userId}/playlists`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name,
-      description,
-      public: isPublic,
-    }),
-  });
+): Promise<SpotifyPlaylist> {
+  // 1. Create Playlist using /me/playlists or /users/${userId}/playlists
+  let playlist: SpotifyPlaylist | null = null;
 
-  if (!createRes.ok) throw new Error('Failed to create playlist');
-  const playlist = await createRes.json();
-
-  // 2. Add Tracks in chunks of 100 (Spotify API limit)
-  for (let i = 0; i < trackUris.length; i += 100) {
-    const chunk = trackUris.slice(i, i + 100);
-    await fetch(`${SPOTIFY_API_URL}/playlists/${playlist.id}/tracks`, {
+  try {
+    const res = await fetch(`${SPOTIFY_API_URL}/me/playlists`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ uris: chunk }),
+      body: JSON.stringify({
+        name,
+        description,
+        public: isPublic,
+      }),
     });
+
+    if (res.ok) {
+      playlist = await res.json();
+    } else {
+      console.warn('POST /me/playlists returned status:', res.status, await res.text());
+    }
+  } catch (err) {
+    console.warn('POST /me/playlists exception:', err);
+  }
+
+  // Fallback to /users/${userId}/playlists if /me/playlists failed
+  if (!playlist && userId) {
+    const fallbackRes = await fetch(`${SPOTIFY_API_URL}/users/${encodeURIComponent(userId)}/playlists`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+        description,
+        public: isPublic,
+      }),
+    });
+
+    if (!fallbackRes.ok) {
+      const errBody = await fallbackRes.text();
+      throw new Error(`Failed to create playlist on Spotify: ${errBody}`);
+    }
+    playlist = await fallbackRes.json();
+  }
+
+  if (!playlist || !playlist.id) {
+    throw new Error('Could not create playlist on Spotify');
+  }
+
+  // 2. Add Tracks in chunks of 100
+  if (trackUris && trackUris.length > 0) {
+    for (let i = 0; i < trackUris.length; i += 100) {
+      const chunk = trackUris.slice(i, i + 100);
+      const addRes = await fetch(`${SPOTIFY_API_URL}/playlists/${playlist.id}/tracks`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ uris: chunk }),
+      });
+      if (!addRes.ok) {
+        console.error('Failed to add track chunk to playlist:', await addRes.text());
+      }
+    }
   }
 
   return playlist;

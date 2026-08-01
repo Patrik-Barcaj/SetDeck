@@ -1,20 +1,42 @@
 'use client';
 
 import { useSetlistStore } from '@/hooks/useSetlistStore';
-import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useAppSettings } from '@/hooks/useAppSettings';
+import { useRecentSearches } from '@/hooks/useRecentSearches';
+import { useSession, signIn } from '@/lib/auth-client';
+import { Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { signIn } from '@/lib/auth-client';
 import { SuccessModal } from './SuccessModal';
 
 export function ActionBar() {
   const { data, tracks } = useSetlistStore();
+  const { settings } = useAppSettings();
+  const { addSearch } = useRecentSearches();
+  const { data: session } = useSession();
+
   const [isExporting, setIsExporting] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
   const [successData, setSuccessData] = useState<{ url: string; imageUrl?: string } | null>(null);
 
+  useEffect(() => {
+    if (settings?.playlistVisibility) {
+      setIsPublic(settings.playlistVisibility === 'public');
+    }
+  }, [settings?.playlistVisibility]);
+
   const handleExport = async () => {
-    if (!data || tracks.length === 0) return;
+    if (!data || tracks.length === 0) {
+      toast.error('No tracks available to export');
+      return;
+    }
+
+    if (!session?.accessToken) {
+      toast.info('Please sign in to Spotify to create playlists');
+      signIn('spotify');
+      return;
+    }
+
     setIsExporting(true);
     
     try {
@@ -29,25 +51,36 @@ export function ActionBar() {
         }),
       });
       
+      const resData = await res.json();
+
       if (!res.ok) {
         if (res.status === 401) {
-          // Need to sign in
-          toast.error("Please sign in to Spotify first");
+          toast.error('Session expired. Please sign in to Spotify again.');
           signIn('spotify');
           return;
         }
-        throw new Error('Export failed');
+        throw new Error(resData.error || 'Failed to export playlist to Spotify');
       }
-      
-      const result = await res.json();
-      setSuccessData({
-        url: result.url,
-        imageUrl: result.imageUrl
+
+      // Save to recent setlists
+      addSearch({
+        id: data.mbid,
+        name: data.artistName,
+        imageUrl: resData.imageUrl,
       });
-      toast.success("Playlist created successfully!");
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to export playlist");
+
+      setSuccessData({
+        url: resData.url,
+        imageUrl: resData.imageUrl,
+      });
+
+      toast.success('Playlist successfully created on Spotify!', {
+        icon: <CheckCircle2 className="w-4 h-4 text-emerald-400" />,
+      });
+    } catch (e: unknown) {
+      console.error('Export error:', e);
+      const errMsg = e instanceof Error ? e.message : 'Failed to export playlist';
+      toast.error(errMsg);
     } finally {
       setIsExporting(false);
     }
@@ -57,32 +90,36 @@ export function ActionBar() {
     <>
       <div className="fixed bottom-[90px] left-0 right-0 p-4 md:p-6 z-40 pointer-events-none">
         <div className="max-w-4xl mx-auto flex items-center justify-center md:justify-end gap-4 pointer-events-auto">
-          <div className="hidden md:flex flex-col gap-1 text-right mr-4 bg-background/80 p-2 rounded-lg backdrop-blur-md">
-            <p className="text-sm text-muted-foreground">
+          <div className="hidden md:flex flex-col gap-1 text-right mr-4 bg-background/90 p-2.5 rounded-xl border border-border/50 backdrop-blur-md shadow-lg">
+            <p className="text-xs text-muted-foreground">
               <span className="font-bold text-foreground">{tracks.length}</span> tracks ready
             </p>
-            <label className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground">
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors">
               <input 
                 type="checkbox" 
                 checked={isPublic} 
                 onChange={(e) => setIsPublic(e.target.checked)}
-                className="accent-setdeck-gold"
+                className="accent-setdeck-gold cursor-pointer"
               />
               Make playlist public
             </label>
           </div>
+
           <button
             onClick={handleExport}
             disabled={isExporting || tracks.length === 0}
-            className="flex-1 md:flex-none w-full md:w-96 bg-gradient-to-r from-setdeck-gold to-amber-400 text-black font-extrabold text-lg py-4 px-8 rounded-full hover:from-amber-400 hover:to-amber-300 transition-all hover:scale-[1.03] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(244,168,54,0.4)] hover:shadow-[0_0_50px_rgba(244,168,54,0.6)] animate-glow-pulse"
+            className="flex-1 md:flex-none w-full md:w-96 bg-gradient-to-r from-setdeck-gold via-amber-400 to-amber-300 text-black font-black text-sm md:text-base py-4 px-8 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2.5 shadow-[0_0_35px_rgba(244,168,54,0.35)] hover:shadow-[0_0_50px_rgba(244,168,54,0.6)] cursor-pointer"
           >
             {isExporting ? (
               <>
-                <Loader2 className="w-6 h-6 animate-spin" />
-                EXPORTING...
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>GENERATING PLAYLIST...</span>
               </>
             ) : (
-              'EXPORT TO SPOTIFY'
+              <>
+                <Sparkles className="w-5 h-5" />
+                <span>EXPORT TO SPOTIFY</span>
+              </>
             )}
           </button>
         </div>
