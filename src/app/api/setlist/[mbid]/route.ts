@@ -5,6 +5,7 @@ import { detectRegion } from '@/utils/detectRegion';
 import { redis } from '@/lib/redis';
 import { SetlistData } from '@/types';
 import { searchSpotifyTrack, getClientCredentialsToken } from '@/lib/spotify';
+import { auth } from '@/lib/auth';
 
 export async function GET(
   request: Request,
@@ -32,28 +33,30 @@ export async function GET(
 
     let hydratedTracks = aggregated;
     try {
-      const spotifyToken = await getClientCredentialsToken();
+      const session = await auth();
+      const spotifyToken = session?.accessToken || (await getClientCredentialsToken());
       
-      // Hydrate all tracks concurrently to avoid waterfall
-      hydratedTracks = await Promise.all(
-        aggregated.map(async (track) => {
-          const searchArtist = track.isCover && track.coverArtist ? track.coverArtist : artistName;
-          const spotifyResult = await searchSpotifyTrack(searchArtist, track.name, spotifyToken);
-          
-          if (spotifyResult) {
-            return {
-              ...track,
-              spotifyUri: spotifyResult.uri,
-              previewUrl: spotifyResult.preview_url || null,
-              durationMs: spotifyResult.duration_ms,
-            };
-          }
-          return track;
-        })
-      );
+      if (spotifyToken) {
+        // Hydrate tracks concurrently
+        hydratedTracks = await Promise.all(
+          aggregated.map(async (track) => {
+            const searchArtist = track.isCover && track.coverArtist ? track.coverArtist : artistName;
+            const spotifyResult = await searchSpotifyTrack(searchArtist, track.name, spotifyToken);
+            
+            if (spotifyResult) {
+              return {
+                ...track,
+                spotifyUri: spotifyResult.uri,
+                previewUrl: spotifyResult.preview_url || null,
+                durationMs: spotifyResult.duration_ms,
+              };
+            }
+            return track;
+          })
+        );
+      }
     } catch (spotifyErr) {
       console.warn('Failed to hydrate Spotify data during aggregation:', spotifyErr);
-      // We continue with unhydrated tracks if Spotify fails
     }
 
     const data: SetlistData = {

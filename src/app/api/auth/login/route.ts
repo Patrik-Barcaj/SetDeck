@@ -8,11 +8,19 @@ export async function GET() {
     return NextResponse.json({ error: 'Missing SPOTIFY_CLIENT_ID' }, { status: 500 });
   }
 
-  const scope = 'user-read-private user-read-email playlist-modify-public playlist-modify-private';
+  const scopes = [
+    'user-read-private',
+    'user-read-email',
+    'playlist-modify-public',
+    'playlist-modify-private',
+    'playlist-read-private',
+    'playlist-read-collaborative',
+  ].join(' ');
+
   const authUrl = new URL('https://accounts.spotify.com/authorize');
   authUrl.searchParams.append('response_type', 'code');
   authUrl.searchParams.append('client_id', clientId);
-  authUrl.searchParams.append('scope', scope);
+  authUrl.searchParams.append('scope', scopes);
   authUrl.searchParams.append('redirect_uri', redirectUri);
   authUrl.searchParams.append('show_dialog', 'true');
 

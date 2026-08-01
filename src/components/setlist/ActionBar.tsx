@@ -54,9 +54,14 @@ export function ActionBar() {
       const resData = await res.json();
 
       if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Session expired. Please sign in to Spotify again.');
-          signIn('spotify');
+        if (res.status === 401 || res.status === 403 || resData.needReauth) {
+          toast.error('Spotify write permissions needed. Reconnecting Spotify...', {
+            action: {
+              label: 'Grant Access',
+              onClick: () => signIn('spotify'),
+            },
+          });
+          setTimeout(() => signIn('spotify'), 1500);
           return;
         }
         throw new Error(resData.error || 'Failed to export playlist to Spotify');

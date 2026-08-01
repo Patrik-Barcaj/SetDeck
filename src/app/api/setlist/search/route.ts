@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { searchSpotifyArtists } from '@/lib/spotify';
+import { auth } from '@/lib/auth';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -10,7 +11,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const artists = await searchSpotifyArtists(q);
+    const session = await auth();
+    const artists = await searchSpotifyArtists(q, session?.accessToken);
     return NextResponse.json(artists);
   } catch (error) {
     console.error('Spotify Search Error:', error);
