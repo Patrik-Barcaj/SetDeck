@@ -59,6 +59,6 @@
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(29, 185, 84, 0.5); /* Spotify Green */
+    background: rgba(244, 168, 54, 0.5); /* Setdeck Gold */
   }
 }

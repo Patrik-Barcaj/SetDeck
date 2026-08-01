@@ -1,23 +1,20 @@
 import { LikelihoodBadge as BadgeType } from '@/types';
 
 export function LikelihoodBadge({ type, likelihood }: { type: BadgeType; likelihood: number }) {
-  let bgColor = 'bg-gray-500/20';
-  let textColor = 'text-gray-400';
+  let dotColor = 'bg-gray-500';
 
   if (type === 'Green') {
-    bgColor = 'bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
-    textColor = 'text-black';
+    dotColor = 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]';
   } else if (type === 'Yellow') {
-    bgColor = 'bg-gradient-to-r from-amber-500 to-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)]';
-    textColor = 'text-black';
+    dotColor = 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]';
   } else if (type === 'Red') {
-    bgColor = 'bg-gradient-to-r from-rose-500 to-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.3)]';
-    textColor = 'text-white';
+    dotColor = 'bg-stone-600 shadow-[0_0_8px_rgba(87,83,78,0.6)]';
   }
 
   return (
-    <span className={`px-2 py-1 rounded-md text-xs font-bold ${bgColor} ${textColor}`}>
-      {likelihood}%
-    </span>
+    <div className="flex items-center gap-1.5" title={`${likelihood}% Likelihood`}>
+      <div className={`w-2 h-2 rounded-full ${dotColor}`} />
+      <span className="text-[10px] text-muted-foreground font-medium">{likelihood}%</span>
+    </div>
   );
 }

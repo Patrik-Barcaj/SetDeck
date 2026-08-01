@@ -55,8 +55,8 @@ export function ActionBar() {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-background/50 backdrop-blur-xl border-t border-border/30 z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+      <div className="fixed bottom-0 left-0 right-0 p-4 md:p-6 bg-background/50 backdrop-blur-xl border-t border-border/30 z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        <div className="max-w-4xl mx-auto flex items-center justify-center md:justify-between gap-4">
           <div className="hidden md:flex flex-col gap-1">
             <p className="text-sm text-muted-foreground">
               <span className="font-bold text-foreground">{tracks.length}</span> tracks ready
@@ -66,7 +66,7 @@ export function ActionBar() {
                 type="checkbox" 
                 checked={isPublic} 
                 onChange={(e) => setIsPublic(e.target.checked)}
-                className="accent-spotify-green"
+                className="accent-setdeck-gold"
               />
               Make playlist public
             </label>
@@ -74,7 +74,7 @@ export function ActionBar() {
           <button
             onClick={handleExport}
             disabled={isExporting || tracks.length === 0}
-            className="flex-1 md:flex-none w-full md:w-96 bg-gradient-to-r from-spotify-green to-emerald-400 text-black font-extrabold text-lg py-4 px-8 rounded-full hover:from-emerald-400 hover:to-emerald-300 transition-all hover:scale-[1.03] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(29,185,84,0.4)] hover:shadow-[0_0_50px_rgba(29,185,84,0.6)] animate-glow-pulse"
+            className="flex-1 md:flex-none w-full md:w-96 bg-gradient-to-r from-setdeck-gold to-amber-400 text-black font-extrabold text-lg py-4 px-8 rounded-full hover:from-amber-400 hover:to-amber-300 transition-all hover:scale-[1.03] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(244,168,54,0.4)] hover:shadow-[0_0_50px_rgba(244,168,54,0.6)] animate-glow-pulse"
           >
             {isExporting ? (
               <>

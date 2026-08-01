@@ -71,7 +71,7 @@ export function SearchBar() {
         </div>
         <input
           type="text"
-          className="w-full bg-secondary/80 border border-border rounded-full py-4 pl-14 pr-12 text-lg focus:outline-none focus:ring-2 focus:ring-spotify-green transition-all"
+          className="w-full bg-[#1b1b1b] border border-border/20 rounded-full py-4 pl-14 pr-12 text-lg focus:outline-none focus:ring-2 focus:ring-setdeck-gold transition-all"
           placeholder="Search for an artist..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}

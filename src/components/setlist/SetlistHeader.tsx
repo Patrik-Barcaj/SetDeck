@@ -1,7 +1,8 @@
 'use client';
 
 import { useSetlistStore } from '@/hooks/useSetlistStore';
-import { Shuffle, RotateCcw } from 'lucide-react';
+import { Shuffle, RotateCcw, ChevronLeft } from 'lucide-react';
+import Link from 'next/link';
 
 export function SetlistHeader() {
   const { data, toggleShuffle, reset } = useSetlistStore();
@@ -9,41 +10,36 @@ export function SetlistHeader() {
   if (!data) return null;
 
   return (
-    <div className="w-full relative overflow-hidden py-20 px-6 mb-8 rounded-b-[3rem] shadow-2xl">
-      <div className="absolute inset-0 bg-gradient-to-br from-spotify-green/30 via-background to-black pointer-events-none" />
-      <div className="absolute top-[-30%] left-[-10%] w-[70%] h-[70%] rounded-full bg-spotify-green/20 blur-[100px] pointer-events-none animate-mesh-flow" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-500/10 blur-[100px] pointer-events-none animate-mesh-flow" style={{ animationDelay: '3s' }} />
-      <div className="absolute inset-0 bg-black/40 pointer-events-none" />
-      
-      <div className="relative z-10 max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-end gap-6">
-        <div>
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+    <div className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md border-b border-border/40 py-3 px-4 mb-4 flex items-center justify-between shadow-sm">
+      <div className="flex items-center gap-3">
+        <Link href="/" className="p-2 -ml-2 text-muted-foreground hover:text-setdeck-gold transition-colors">
+          <ChevronLeft className="w-6 h-6" />
+        </Link>
+        <div className="flex flex-col">
+          <h1 className="text-base font-bold truncate max-w-[140px] sm:max-w-[200px] md:max-w-xs">
             {data.artistName}
           </h1>
-          <p className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-spotify-green to-emerald-400 font-bold">
+          <p className="text-xs text-setdeck-gold truncate max-w-[140px] sm:max-w-[200px] md:max-w-xs">
             {data.tourName}
           </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Based on the last {data.totalValidShows} shows
-          </p>
         </div>
-        
-        <div className="flex gap-4">
-          <button
-            onClick={reset}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-secondary/80 backdrop-blur-md hover:bg-secondary border border-border/50 hover:border-border transition-all shadow-lg"
-          >
-            <RotateCcw className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-bold">Original Order</span>
-          </button>
-          <button
-            onClick={toggleShuffle}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-spotify-green text-black hover:bg-emerald-400 hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(29,185,84,0.3)] font-bold"
-          >
-            <Shuffle className="w-4 h-4" />
-            <span className="text-sm">Shuffle</span>
-          </button>
-        </div>
+      </div>
+      
+      <div className="flex gap-2 items-center">
+        <button
+          onClick={reset}
+          className="p-2 rounded-full bg-secondary/80 hover:bg-secondary transition-all"
+          title="Original Order"
+        >
+          <RotateCcw className="w-4 h-4 text-muted-foreground" />
+        </button>
+        <button
+          onClick={toggleShuffle}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-setdeck-gold text-black hover:bg-amber-400 hover:scale-105 active:scale-95 transition-all font-bold"
+        >
+          <Shuffle className="w-4 h-4" />
+          <span className="text-xs hidden sm:inline">Shuffle</span>
+        </button>
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        'setdeck-gold': '#F4A836',
         border: 'var(--border)',
         input: 'var(--input)',
         ring: 'var(--ring)',
@@ -44,7 +45,7 @@ const config: Config = {
           foreground: 'var(--card-foreground)',
         },
         spotify: {
-          green: '#1DB954',
+          
           black: '#191414',
         },
       },

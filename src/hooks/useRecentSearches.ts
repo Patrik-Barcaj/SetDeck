@@ -33,5 +33,17 @@ export function useRecentSearches() {
     });
   };
 
-  return { recentSearches, addSearch };
+  const removeSearch = (id: string) => {
+    setRecentSearches((prev) => {
+      const updated = prev.filter((s) => s.id !== id);
+      try {
+        localStorage.setItem('setdeck_recent_searches', JSON.stringify(updated));
+      } catch (e) {
+        console.error('Failed to save recent searches', e);
+      }
+      return updated;
+    });
+  };
+
+  return { recentSearches, addSearch, removeSearch };
 }
