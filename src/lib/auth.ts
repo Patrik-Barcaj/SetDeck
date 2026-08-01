@@ -1,38 +1,37 @@
-import NextAuth from 'next-auth';
-import Spotify from 'next-auth/providers/spotify';
+import { cookies } from 'next/headers';
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  trustHost: true,
-  session: {
-    strategy: 'jwt',
-  },
-  providers: [
-    Spotify({
-      clientId: process.env.SPOTIFY_CLIENT_ID,
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-      authorization:
-        'https://accounts.spotify.com/authorize?scope=user-read-private%20user-read-email%20playlist-modify-public%20playlist-modify-private',
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, account, user, profile }) {
-      if (account) {
-        token.accessToken = account.access_token;
-        token.refreshToken = account.refresh_token;
-        token.expiresAt = account.expires_at;
-        token.providerAccountId = account.providerAccountId;
-      }
-      if (profile) {
-        token.name = (profile.display_name as string) || user?.name;
-        token.picture = ((profile as { images?: { url: string }[] }).images?.[0]?.url as string) || user?.image;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      session.accessToken = token.accessToken as string;
-      session.error = token.error as string;
-      session.providerAccountId = token.providerAccountId as string;
-      return session;
-    },
-  },
-});
+export interface SetDeckSession {
+  user: {
+    id: string;
+    name: string;
+    email?: string;
+    image?: string;
+  };
+  accessToken: string;
+  refreshToken?: string;
+  expiresAt?: number;
+  providerAccountId: string;
+}
+
+const COOKIE_NAME = 'setdeck_session';
+
+export async function auth(): Promise<SetDeckSession | null> {
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get(COOKIE_NAME)?.value;
+  if (!sessionCookie) return null;
+
+  try {
+    const decoded = Buffer.from(sessionCookie, 'base64').toString('utf-8');
+    const session = JSON.parse(decoded) as SetDeckSession;
+    return session;
+  } catch (err) {
+    console.error('Failed to parse session cookie:', err);
+    return null;
+  }
+}
+
+export function encodeSession(session: SetDeckSession): string {
+  return Buffer.from(JSON.stringify(session)).toString('base64');
+}
+
+export { COOKIE_NAME };

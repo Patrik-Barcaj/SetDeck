@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { useSession, signIn, signOut } from '@/lib/auth-client';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { toast } from 'sonner';
 import { 

@@ -4,7 +4,7 @@ import { useSetlistStore } from '@/hooks/useSetlistStore';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { signIn } from 'next-auth/react';
+import { signIn } from '@/lib/auth-client';
 import { SuccessModal } from './SuccessModal';
 
 export function ActionBar() {
