@@ -32,7 +32,7 @@ describe('/api/setlist/export', () => {
       expect(res.status).toBe(401);
     });
 
-    it('returns 400 if artistName or tracks are missing/empty', async () => {
+    it('returns 400 if tracks are missing or empty', async () => {
       const mockSession: SetDeckSession = {
         accessToken: 'token_123',
         user: { id: 'u1', name: 'User 1' },
@@ -97,6 +97,52 @@ describe('/api/setlist/export', () => {
         'Metallica - WorldWired Tour',
         expect.stringContaining('SetDeck'),
         ['spotify:track:resolved_trk1', 'spotify:track:pre_existing_uri'],
+        'token_123',
+        false
+      );
+    });
+
+    it('falls back gracefully when artistName is Unknown Artist', async () => {
+      const mockSession: SetDeckSession = {
+        accessToken: 'token_123',
+        providerAccountId: 'spotify_user_456',
+        user: { id: 'u1', name: 'User 1' },
+      };
+      vi.mocked(authLib.auth).mockResolvedValue(mockSession);
+
+      vi.mocked(spotifyLib.searchSpotifyTrack).mockResolvedValue({
+        id: 'trk1',
+        name: 'Master of Puppets',
+        uri: 'spotify:track:resolved_trk2',
+        duration_ms: 515000,
+        preview_url: null,
+        artists: [{ id: 'a1', name: 'Metallica' }],
+      });
+
+      vi.mocked(spotifyLib.createSpotifyPlaylist).mockResolvedValue({
+        id: 'mock_pl_id_2',
+        name: 'Metallica - Live Setlist',
+        external_urls: { spotify: 'https://open.spotify.com/playlist/mock_pl_id_2' },
+        images: [{ url: 'https://cover2.jpg' }],
+      });
+
+      const req = new Request('http://localhost/api/setlist/export', {
+        method: 'POST',
+        body: JSON.stringify({
+          artistName: 'Unknown Artist',
+          tracks: [
+            { id: '1', name: 'Master of Puppets', count: 10, totalShows: 10, likelihood: 100, badge: 'Green', originalOrder: 1, isCover: false },
+          ],
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(200);
+      expect(spotifyLib.createSpotifyPlaylist).toHaveBeenCalledWith(
+        'spotify_user_456',
+        'Metallica - Live Setlist',
+        expect.any(String),
+        ['spotify:track:resolved_trk2'],
         'token_123',
         false
       );

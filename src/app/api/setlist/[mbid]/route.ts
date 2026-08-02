@@ -32,6 +32,12 @@ export async function GET(
     const tourName = `${new Date().getFullYear()} ${region === 'World' ? 'Global' : region} Tour`;
 
     let hydratedTracks = aggregated;
+    let resolvedArtistName = artistName;
+
+    if (resolvedArtistName === 'Unknown Artist' && shows[0]?.artist?.name) {
+      resolvedArtistName = shows[0].artist.name;
+    }
+
     try {
       const session = await auth();
       const spotifyToken = session?.accessToken || (await getClientCredentialsToken());
@@ -40,7 +46,10 @@ export async function GET(
         // Hydrate tracks concurrently
         hydratedTracks = await Promise.all(
           aggregated.map(async (track) => {
-            const searchArtist = track.isCover && track.coverArtist ? track.coverArtist : artistName;
+            const searchArtist = track.isCover && track.coverArtist 
+              ? track.coverArtist 
+              : (resolvedArtistName !== 'Unknown Artist' ? resolvedArtistName : '');
+
             const spotifyResult = await searchSpotifyTrack(searchArtist, track.name, spotifyToken);
             
             if (spotifyResult) {
@@ -61,7 +70,7 @@ export async function GET(
 
     const data: SetlistData = {
       mbid,
-      artistName,
+      artistName: resolvedArtistName,
       tourName,
       tracks: hydratedTracks,
       region,

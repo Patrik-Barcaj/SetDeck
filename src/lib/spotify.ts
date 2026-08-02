@@ -1,3 +1,5 @@
+import { sanitizeTrackName } from '@/utils/sanitizeTrackName';
+
 const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
 const SPOTIFY_API_URL = 'https://api.spotify.com/v1';
 
@@ -86,21 +88,29 @@ export async function searchSpotifyTrack(
   trackName: string,
   token: string
 ): Promise<SpotifyTrack | null> {
-  if (!token) return null;
+  if (!token || !trackName) return null;
 
-  const cleanTrack = trackName
-    .replace(/\(.*?\)/g, '')
-    .replace(/\[.*?\]/g, '')
-    .replace(/"/g, '')
-    .trim();
+  const cleanTrack = sanitizeTrackName(trackName) || trackName.trim();
+  const validArtist = artistName && artistName.trim() !== '' && artistName.toLowerCase() !== 'unknown artist' 
+    ? artistName.trim() 
+    : '';
 
-  // Try queries in order of specificity
-  const queries = [
-    `${artistName} ${cleanTrack || trackName}`,
-    `${artistName} ${trackName}`,
-    `artist:${artistName} track:${cleanTrack || trackName}`,
-    cleanTrack || trackName,
-  ];
+  // Build tiered list of search queries
+  const queries: string[] = [];
+
+  if (validArtist) {
+    queries.push(`artist:"${validArtist}" track:"${cleanTrack}"`);
+    queries.push(`track:"${cleanTrack}" artist:"${validArtist}"`);
+    queries.push(`"${validArtist}" "${cleanTrack}"`);
+    queries.push(`${validArtist} ${cleanTrack}`);
+  }
+
+  // General fallbacks based on track name
+  queries.push(`track:"${cleanTrack}"`);
+  queries.push(cleanTrack);
+  if (cleanTrack !== trackName.trim()) {
+    queries.push(trackName.trim());
+  }
 
   for (const q of queries) {
     try {
@@ -113,20 +123,23 @@ export async function searchSpotifyTrack(
         const data = await res.json();
         const items = (data.tracks?.items || []) as SpotifyTrack[];
         if (items.length > 0) {
-          const match = items.find((item) =>
-            item.artists?.some((a) =>
-              a.name.toLowerCase().includes(artistName.toLowerCase()) ||
-              artistName.toLowerCase().includes(a.name.toLowerCase())
-            )
-          ) || items[0];
-
-          return match;
+          if (validArtist) {
+            const lowerArtist = validArtist.toLowerCase();
+            const match = items.find((item) =>
+              item.artists?.some((a) =>
+                a.name.toLowerCase().includes(lowerArtist) ||
+                lowerArtist.includes(a.name.toLowerCase())
+              )
+            );
+            if (match) return match;
+          }
+          return items[0];
         }
       } else {
-        console.warn(`Search for query "${q}" returned status ${res.status}`);
+        console.warn(`[Spotify Search] Query "${q}" returned status ${res.status}`);
       }
     } catch (e) {
-      console.warn(`Search error on query "${q}":`, e);
+      console.warn(`[Spotify Search] Error on query "${q}":`, e);
     }
   }
 
@@ -138,18 +151,23 @@ export async function addTracksToSpotifyPlaylist(
   trackUris: string[],
   token: string
 ): Promise<void> {
-  const validUris = trackUris
-    .map((uri) => uri.trim())
+  const validUris: string[] = trackUris
+    .map((uri) => (typeof uri === 'string' ? uri.trim() : ''))
     .filter((uri) => uri.length > 0)
     .map((uri) => (uri.startsWith('spotify:track:') ? uri : `spotify:track:${uri}`));
 
   if (validUris.length === 0) {
-    throw new Error('No valid track URIs provided to add to playlist');
+    console.warn(`[Spotify API] No valid track URIs provided to add to playlist ${playlistId}`);
+    return;
   }
 
-  for (let i = 0; i < validUris.length; i += 50) {
-    const chunk = validUris.slice(i, i + 50);
-    const res = await fetch(`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`, {
+  // Spotify allows max 100 tracks per batch
+  const CHUNK_SIZE = 100;
+  for (let i = 0; i < validUris.length; i += CHUNK_SIZE) {
+    const chunk = validUris.slice(i, i + CHUNK_SIZE);
+    console.log(`[Spotify API] Adding chunk of ${chunk.length} tracks to playlist ${playlistId} (offset ${i})...`);
+
+    const res = await fetch(`${SPOTIFY_API_URL}/playlists/${encodeURIComponent(playlistId)}/tracks`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -160,8 +178,10 @@ export async function addTracksToSpotifyPlaylist(
 
     if (!res.ok) {
       const errText = await res.text();
-      console.error(`Failed to add tracks chunk (${i} to ${i + chunk.length}):`, errText);
-      throw new Error(`Failed to add tracks to Spotify playlist: ${errText}`);
+      console.error(`[Spotify API Error] Failed to add tracks (status ${res.status}) to playlist ${playlistId}:`, errText);
+      throw new Error(`Failed to add tracks to Spotify playlist (status ${res.status}): ${errText}`);
+    } else {
+      console.log(`[Spotify API] Successfully added ${chunk.length} tracks to playlist ${playlistId}.`);
     }
   }
 }
@@ -175,6 +195,7 @@ export async function createSpotifyPlaylist(
   isPublic = false
 ): Promise<SpotifyPlaylist> {
   let playlist: SpotifyPlaylist | null = null;
+  console.log(`[Spotify API] Creating playlist "${name}" (public: ${isPublic})...`);
 
   // 1. Create Playlist via /me/playlists
   const createRes = await fetch(`${SPOTIFY_API_URL}/me/playlists`, {
@@ -192,12 +213,14 @@ export async function createSpotifyPlaylist(
 
   if (createRes.ok) {
     playlist = await createRes.json();
+    console.log(`[Spotify API] Playlist created successfully via /me/playlists: ${playlist?.id}`);
   } else {
     const errText = await createRes.text();
-    console.warn('POST /me/playlists returned status:', createRes.status, errText);
+    console.warn(`[Spotify API] POST /me/playlists returned status ${createRes.status}:`, errText);
 
     // Fallback to /users/{userId}/playlists
     if (userId) {
+      console.log(`[Spotify API] Trying fallback /users/${userId}/playlists...`);
       const fallbackRes = await fetch(`${SPOTIFY_API_URL}/users/${encodeURIComponent(userId)}/playlists`, {
         method: 'POST',
         headers: {
@@ -213,12 +236,15 @@ export async function createSpotifyPlaylist(
 
       if (fallbackRes.ok) {
         playlist = await fallbackRes.json();
+        console.log(`[Spotify API] Playlist created successfully via fallback: ${playlist?.id}`);
       } else {
         const fallbackErr = await fallbackRes.text();
-        throw new Error(`Failed to create playlist on Spotify: ${fallbackErr}`);
+        console.error(`[Spotify API Error] Fallback playlist creation failed (status ${fallbackRes.status}):`, fallbackErr);
+        throw new Error(`Failed to create playlist on Spotify (status ${fallbackRes.status}): ${fallbackErr}`);
       }
     } else {
-      throw new Error(`Failed to create playlist on Spotify: ${errText}`);
+      console.error(`[Spotify API Error] Failed to create playlist (status ${createRes.status}):`, errText);
+      throw new Error(`Failed to create playlist on Spotify (status ${createRes.status}): ${errText}`);
     }
   }
 
@@ -229,6 +255,8 @@ export async function createSpotifyPlaylist(
   // 2. Add Tracks
   if (trackUris && trackUris.length > 0) {
     await addTracksToSpotifyPlaylist(playlist.id, trackUris, token);
+  } else {
+    console.warn(`[Spotify API] Warning: No track URIs provided when creating playlist ${playlist.id}`);
   }
 
   return playlist;

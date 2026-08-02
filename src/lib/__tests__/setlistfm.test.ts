@@ -114,5 +114,33 @@ describe('Setlist.fm API Client Library', () => {
       expect(result.shows).toHaveLength(2);
       expect(result.shows.map((s) => s.id)).toEqual(['s1', 's3']);
     });
+
+    it('extracts artistName from setlist array if top-level artist is missing', async () => {
+      const validShowWithArtist = (id: string) => ({
+        id,
+        eventDate: '01-08-2026',
+        artist: { mbid: 'mbid_foo', name: 'Foo Fighters' },
+        venue: { name: 'Stadium', city: { name: 'London', country: { name: 'UK', code: 'GB' } } },
+        sets: {
+          set: [{ song: [{ name: 'Everlong' }] }],
+        },
+      });
+
+      global.fetch = vi.fn().mockResolvedValue({
+        status: 200,
+        ok: true,
+        json: async () => ({
+          type: 'setlists',
+          total: 1,
+          page: 1,
+          itemsPerPage: 20,
+          setlist: [validShowWithArtist('s100')],
+        }),
+      } as Response);
+
+      const result = await fetchLast10Shows('mbid_foo');
+      expect(result.artistName).toBe('Foo Fighters');
+      expect(result.shows).toHaveLength(1);
+    });
   });
 });

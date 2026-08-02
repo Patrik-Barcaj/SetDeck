@@ -120,32 +120,56 @@ describe('Spotify API Client Library', () => {
       expect(track?.uri).toBe('spotify:track:trk1');
     });
 
+    it('searches tracks cleanly even if artist is Unknown Artist', async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          tracks: {
+            items: [
+              {
+                id: 'trk2',
+                name: 'Master of Puppets',
+                uri: 'spotify:track:trk2',
+                duration_ms: 515000,
+                preview_url: null,
+                artists: [{ id: 'art1', name: 'Metallica' }],
+              },
+            ],
+          },
+        }),
+      } as Response);
+
+      const track = await searchSpotifyTrack('Unknown Artist', 'Master of Puppets', 'token_123');
+      expect(track).not.toBeNull();
+      expect(track?.uri).toBe('spotify:track:trk2');
+    });
+
     it('returns null if no track found across query variations', async () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({ tracks: { items: [] } }),
       } as Response);
 
-      const track = await searchSpotifyTrack('UnknownArtist', 'NonexistentSong', 'token_123');
+      const track = await searchSpotifyTrack('NonexistentArtist', 'NonexistentSong', 'token_123');
       expect(track).toBeNull();
     });
   });
 
   describe('addTracksToSpotifyPlaylist', () => {
-    it('throws error if trackUris is empty', async () => {
-      await expect(
-        addTracksToSpotifyPlaylist('playlist_123', [], 'token_123')
-      ).rejects.toThrow('No valid track URIs provided');
+    it('handles empty track URIs gracefully', async () => {
+      global.fetch = vi.fn();
+      await addTracksToSpotifyPlaylist('playlist_123', [], 'token_123');
+      expect(global.fetch).not.toHaveBeenCalled();
     });
 
-    it('chunks track URIs and sends POST request to playlist tracks endpoint', async () => {
+    it('chunks track URIs into batches of 100 and sends POST requests', async () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         text: async () => '',
       } as Response);
 
-      // Create 60 URIs to test chunking into 50 and 10
-      const testUris = Array.from({ length: 60 }, (_, i) => `trk_${i}`);
+      // Create 120 URIs to test chunking into 100 and 20
+      const testUris = Array.from({ length: 120 }, (_, i) => `trk_${i}`);
       await addTracksToSpotifyPlaylist('pl_123', testUris, 'token_123');
 
       expect(global.fetch).toHaveBeenCalledTimes(2);
@@ -155,7 +179,7 @@ describe('Spotify API Client Library', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({
-            uris: testUris.slice(0, 50).map((u) => `spotify:track:${u}`),
+            uris: testUris.slice(0, 100).map((u) => `spotify:track:${u}`),
           }),
         })
       );
@@ -165,7 +189,7 @@ describe('Spotify API Client Library', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({
-            uris: testUris.slice(50, 60).map((u) => `spotify:track:${u}`),
+            uris: testUris.slice(100, 120).map((u) => `spotify:track:${u}`),
           }),
         })
       );

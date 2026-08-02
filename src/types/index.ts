@@ -18,6 +18,11 @@ export interface SetlistTrack {
 export interface SetlistShow {
   id: string;
   eventDate: string;
+  artist?: {
+    mbid?: string;
+    name?: string;
+    sortName?: string;
+  };
   venue: {
     id: string;
     name: string;

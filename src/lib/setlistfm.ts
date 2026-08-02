@@ -40,8 +40,17 @@ export async function fetchLast10Shows(mbid: string): Promise<{ shows: SetlistSh
       break;
     }
 
-    if (page === 1 && data.artist && data.artist.name) {
-      artistName = data.artist.name;
+    if (artistName === 'Unknown Artist') {
+      if (data.artist?.name) {
+        artistName = data.artist.name;
+      } else if (data.setlist?.[0]?.artist?.name) {
+        artistName = data.setlist[0].artist.name;
+      } else {
+        const found = data.setlist?.find((s: { artist?: { name?: string } }) => s.artist?.name);
+        if (found?.artist?.name) {
+          artistName = found.artist.name;
+        }
+      }
     }
 
     // A valid show is one that has at least one set with songs
@@ -65,6 +74,13 @@ export async function fetchLast10Shows(mbid: string): Promise<{ shows: SetlistSh
     // Respect Setlist.fm rate limits (2 requests per second recommended)
     if (validShows.length < 10 && hasMore) {
       await delay(500);
+    }
+  }
+
+  if (artistName === 'Unknown Artist' && validShows.length > 0) {
+    const showWithArtist = validShows.find((s) => s.artist?.name);
+    if (showWithArtist?.artist?.name) {
+      artistName = showWithArtist.artist.name;
     }
   }
 
