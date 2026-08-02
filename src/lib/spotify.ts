@@ -119,8 +119,18 @@ export async function searchSpotifyTrack(
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (res.ok) {
-        const data = await res.json();
+      let searchRes = res;
+      if (searchRes.status === 401) {
+        const clientToken = await getClientCredentialsToken();
+        if (clientToken && clientToken !== token) {
+          searchRes = await fetch(url, {
+            headers: { Authorization: `Bearer ${clientToken}` },
+          });
+        }
+      }
+
+      if (searchRes.ok) {
+        const data = await searchRes.json();
         const items = (data.tracks?.items || []) as SpotifyTrack[];
         if (items.length > 0) {
           if (validArtist) {
@@ -136,7 +146,7 @@ export async function searchSpotifyTrack(
           return items[0];
         }
       } else {
-        console.warn(`[Spotify Search] Query "${q}" returned status ${res.status}`);
+        console.warn(`[Spotify Search] Query "${q}" returned status ${searchRes.status}`);
       }
     } catch (e) {
       console.warn(`[Spotify Search] Error on query "${q}":`, e);
