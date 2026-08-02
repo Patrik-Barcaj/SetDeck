@@ -18,6 +18,9 @@ export async function GET(
     return NextResponse.json({ error: 'Missing MBID' }, { status: 400 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const queryArtistName = (searchParams.get('artistName') || searchParams.get('artist') || '').trim();
+
   const cacheKey = `setlist:artist:${mbid}:last10`;
 
   try {
@@ -32,10 +35,15 @@ export async function GET(
     const tourName = `${new Date().getFullYear()} ${region === 'World' ? 'Global' : region} Tour`;
 
     let hydratedTracks = aggregated;
-    let resolvedArtistName = artistName;
+    let resolvedArtistName = (artistName && artistName !== 'Unknown Artist')
+      ? artistName
+      : (queryArtistName || 'Unknown Artist');
 
-    if (resolvedArtistName === 'Unknown Artist' && shows[0]?.artist?.name) {
-      resolvedArtistName = shows[0].artist.name;
+    if (resolvedArtistName === 'Unknown Artist') {
+      const showWithArtist = shows.find((s) => s.artist?.name);
+      if (showWithArtist?.artist?.name) {
+        resolvedArtistName = showWithArtist.artist.name;
+      }
     }
 
     try {

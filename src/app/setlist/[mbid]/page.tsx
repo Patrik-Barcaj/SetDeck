@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useSetlistStore } from '@/hooks/useSetlistStore';
 import { SetlistHeader } from '@/components/setlist/SetlistHeader';
 import { TrackList } from '@/components/setlist/TrackList';
@@ -11,7 +11,9 @@ import { toast } from 'sonner';
 
 export default function SetlistStudio() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const mbid = params.mbid as string;
+  const artistNameParam = searchParams.get('artistName') || searchParams.get('artist') || '';
   const { setData } = useSetlistStore();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +24,8 @@ export default function SetlistStudio() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/setlist/${mbid}`);
+        const query = artistNameParam ? `?artistName=${encodeURIComponent(artistNameParam)}` : '';
+        const res = await fetch(`/api/setlist/${mbid}${query}`);
         if (!res.ok) {
           const errData = await res.json();
           throw new Error(errData.error || 'Failed to load setlist data');
@@ -38,7 +41,7 @@ export default function SetlistStudio() {
       }
     }
     loadSetlist();
-  }, [mbid, setData]);
+  }, [mbid, artistNameParam, setData]);
 
   if (error) {
     return (

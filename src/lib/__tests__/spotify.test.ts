@@ -3,6 +3,7 @@ import {
   getClientCredentialsToken,
   searchSpotifyArtists,
   searchSpotifyTrack,
+  normalizeSpotifyTrackUri,
   addTracksToSpotifyPlaylist,
   createSpotifyPlaylist,
 } from '../spotify';
@@ -155,6 +156,31 @@ describe('Spotify API Client Library', () => {
     });
   });
 
+  describe('normalizeSpotifyTrackUri', () => {
+    it('normalizes standard spotify:track: URIs', () => {
+      expect(normalizeSpotifyTrackUri('spotify:track:4iV5W9uYEdYUVa79Axb7Rh')).toBe(
+        'spotify:track:4iV5W9uYEdYUVa79Axb7Rh'
+      );
+    });
+
+    it('extracts track URI from open.spotify.com URL', () => {
+      expect(
+        normalizeSpotifyTrackUri('https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh?si=abc12345')
+      ).toBe('spotify:track:4iV5W9uYEdYUVa79Axb7Rh');
+    });
+
+    it('converts 22-character Spotify track ID to URI', () => {
+      expect(normalizeSpotifyTrackUri('4iV5W9uYEdYUVa79Axb7Rh')).toBe(
+        'spotify:track:4iV5W9uYEdYUVa79Axb7Rh'
+      );
+    });
+
+    it('returns null for invalid inputs', () => {
+      expect(normalizeSpotifyTrackUri('')).toBeNull();
+      expect(normalizeSpotifyTrackUri('invalid_id')).toBeNull();
+    });
+  });
+
   describe('addTracksToSpotifyPlaylist', () => {
     it('handles empty track URIs gracefully', async () => {
       global.fetch = vi.fn();
@@ -169,7 +195,7 @@ describe('Spotify API Client Library', () => {
       } as Response);
 
       // Create 120 URIs to test chunking into 100 and 20
-      const testUris = Array.from({ length: 120 }, (_, i) => `trk_${i}`);
+      const testUris = Array.from({ length: 120 }, (_, i) => `spotify:track:trk_${i}`);
       await addTracksToSpotifyPlaylist('pl_123', testUris, 'token_123');
 
       expect(global.fetch).toHaveBeenCalledTimes(2);
@@ -179,7 +205,7 @@ describe('Spotify API Client Library', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({
-            uris: testUris.slice(0, 100).map((u) => `spotify:track:${u}`),
+            uris: testUris.slice(0, 100),
           }),
         })
       );
@@ -189,7 +215,7 @@ describe('Spotify API Client Library', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({
-            uris: testUris.slice(100, 120).map((u) => `spotify:track:${u}`),
+            uris: testUris.slice(100, 120),
           }),
         })
       );

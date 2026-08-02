@@ -4,7 +4,15 @@ import * as spotifyLib from '@/lib/spotify';
 import * as authLib from '@/lib/auth';
 import type { SetDeckSession } from '@/lib/auth';
 
-vi.mock('@/lib/spotify');
+vi.mock('@/lib/spotify', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/spotify')>();
+  return {
+    ...actual,
+    searchSpotifyTrack: vi.fn(),
+    createSpotifyPlaylist: vi.fn(),
+    addTracksToSpotifyPlaylist: vi.fn(),
+  };
+});
 vi.mock('@/lib/auth');
 
 describe('/api/setlist/export', () => {

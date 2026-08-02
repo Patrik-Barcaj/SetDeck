@@ -24,6 +24,41 @@ export async function fetchArtistSetlists(mbid: string, page = 1) {
   return res.json();
 }
 
+export async function fetchArtistDetails(mbid: string): Promise<string | null> {
+  const url = `${BASE_URL}/artist/${mbid}`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'x-api-key': process.env.SETLISTFM_API_KEY!,
+        Accept: 'application/json',
+      },
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.name || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchMusicBrainzArtistName(mbid: string): Promise<string | null> {
+  try {
+    const res = await fetch(`https://musicbrainz.org/ws/2/artist/${mbid}?fmt=json`, {
+      headers: {
+        'User-Agent': 'SetDeck/1.0 (contact@setdeck.app)',
+        Accept: 'application/json',
+      },
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.name || null;
+  } catch {
+    return null;
+  }
+}
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function fetchLast10Shows(mbid: string): Promise<{ shows: SetlistShow[], artistName: string }> {
@@ -81,6 +116,19 @@ export async function fetchLast10Shows(mbid: string): Promise<{ shows: SetlistSh
     const showWithArtist = validShows.find((s) => s.artist?.name);
     if (showWithArtist?.artist?.name) {
       artistName = showWithArtist.artist.name;
+    }
+  }
+
+  // Fallback to direct artist lookup if still Unknown Artist
+  if (artistName === 'Unknown Artist') {
+    const setlistArtistName = await fetchArtistDetails(mbid);
+    if (setlistArtistName) {
+      artistName = setlistArtistName;
+    } else {
+      const mbArtistName = await fetchMusicBrainzArtistName(mbid);
+      if (mbArtistName) {
+        artistName = mbArtistName;
+      }
     }
   }
 

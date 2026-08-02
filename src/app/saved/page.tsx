@@ -37,7 +37,7 @@ export default function SavedPage() {
           {recentSearches.map((search) => (
             <div
               key={search.id}
-              onClick={() => router.push(`/setlist/${search.id}`)}
+              onClick={() => router.push(`/setlist/${search.id}?artistName=${encodeURIComponent(search.name)}`)}
               className="flex items-center justify-between p-3.5 rounded-2xl bg-secondary/40 border border-border/40 hover:border-setdeck-gold/50 hover:bg-secondary/70 transition-all cursor-pointer group shadow-sm"
             >
               <div className="flex items-center gap-3.5 min-w-0">

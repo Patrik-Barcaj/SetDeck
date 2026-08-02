@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { searchSpotifyTrack, createSpotifyPlaylist } from '@/lib/spotify';
+import { searchSpotifyTrack, createSpotifyPlaylist, normalizeSpotifyTrackUri } from '@/lib/spotify';
 import { AggregatedTrack } from '@/types';
 
 export async function GET() {
@@ -32,9 +32,10 @@ export async function POST(request: Request) {
     // Resolve track URIs concurrently
     const resolvedItems = await Promise.all(
       (tracks as AggregatedTrack[]).map(async (track) => {
-        if (track.spotifyUri && typeof track.spotifyUri === 'string' && track.spotifyUri.startsWith('spotify:track:')) {
+        const normalizedExisting = track.spotifyUri ? normalizeSpotifyTrackUri(track.spotifyUri) : null;
+        if (normalizedExisting) {
           return {
-            uri: track.spotifyUri,
+            uri: normalizedExisting,
             name: track.name,
             artist: (track.isCover && track.coverArtist) ? track.coverArtist : effectiveArtist,
           };
@@ -45,11 +46,12 @@ export async function POST(request: Request) {
           : effectiveArtist;
 
         const result = await searchSpotifyTrack(searchArtist, track.name, accessToken);
-        if (result?.uri) {
+        const resolvedUri = result?.uri ? normalizeSpotifyTrackUri(result.uri) : null;
+        if (resolvedUri) {
           return {
-            uri: result.uri,
+            uri: resolvedUri,
             name: track.name,
-            artist: result.artists?.[0]?.name || searchArtist,
+            artist: result?.artists?.[0]?.name || searchArtist,
           };
         }
         return null;

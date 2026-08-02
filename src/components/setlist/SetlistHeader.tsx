@@ -34,10 +34,15 @@ export function SetlistHeader() {
       
       {/* Action Buttons */}
       <div className="flex justify-between items-center mt-1">
-        <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-setdeck-gold to-amber-400">
-          Warm-Up Setlist
-        </h2>
-        <div className="flex gap-2 items-center">
+        <div className="min-w-0 pr-2">
+          <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-setdeck-gold to-amber-300 truncate">
+            {data.artistName !== 'Unknown Artist' ? data.artistName : 'Live Setlist'}
+          </h2>
+          <p className="text-xs text-muted-foreground truncate font-medium">
+            {data.tourName || 'Live Warm-Up Setlist'}
+          </p>
+        </div>
+        <div className="flex gap-2 items-center shrink-0">
           <button
             onClick={reset}
             className="p-2 rounded-full bg-secondary/80 hover:bg-secondary transition-all"

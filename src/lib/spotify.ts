@@ -156,15 +156,31 @@ export async function searchSpotifyTrack(
   return null;
 }
 
+export function normalizeSpotifyTrackUri(uriOrIdOrUrl: string): string | null {
+  if (!uriOrIdOrUrl || typeof uriOrIdOrUrl !== 'string') return null;
+  const trimmed = uriOrIdOrUrl.trim();
+  if (trimmed.startsWith('spotify:track:')) {
+    const id = trimmed.replace('spotify:track:', '').split('?')[0].trim();
+    return id ? `spotify:track:${id}` : null;
+  }
+  const urlMatch = trimmed.match(/spotify\.com\/track\/([a-zA-Z0-9]+)/);
+  if (urlMatch && urlMatch[1]) {
+    return `spotify:track:${urlMatch[1]}`;
+  }
+  if (/^[a-zA-Z0-9]{22}$/.test(trimmed)) {
+    return `spotify:track:${trimmed}`;
+  }
+  return null;
+}
+
 export async function addTracksToSpotifyPlaylist(
   playlistId: string,
   trackUris: string[],
   token: string
 ): Promise<void> {
   const validUris: string[] = trackUris
-    .map((uri) => (typeof uri === 'string' ? uri.trim() : ''))
-    .filter((uri) => uri.length > 0)
-    .map((uri) => (uri.startsWith('spotify:track:') ? uri : `spotify:track:${uri}`));
+    .map((uri) => normalizeSpotifyTrackUri(uri))
+    .filter((uri): uri is string => Boolean(uri));
 
   if (validUris.length === 0) {
     console.warn(`[Spotify API] No valid track URIs provided to add to playlist ${playlistId}`);

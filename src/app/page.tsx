@@ -46,7 +46,7 @@ export default function Home() {
                 <div key={search.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary/50 transition-colors group">
                   <div 
                     className="flex items-center gap-3 cursor-pointer flex-1"
-                    onClick={() => router.push(`/setlist/${search.id}`)}
+                    onClick={() => router.push(`/setlist/${search.id}?artistName=${encodeURIComponent(search.name)}`)}
                   >
                     {search.imageUrl ? (
                       <img src={search.imageUrl} alt={search.name} className="w-8 h-8 rounded-full object-cover" />

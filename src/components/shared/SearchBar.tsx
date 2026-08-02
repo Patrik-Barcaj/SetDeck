@@ -55,7 +55,7 @@ export function SearchBar() {
       const imageUrl = artist.images && artist.images.length > 0 ? artist.images[0].url : undefined;
       addSearch({ id: data.mbid, name: artist.name, imageUrl });
       
-      router.push(`/setlist/${data.mbid}`);
+      router.push(`/setlist/${data.mbid}?artistName=${encodeURIComponent(artist.name)}`);
     } catch (e) {
       console.error(e);
       toast.error("Failed to connect to Setlist.fm");
