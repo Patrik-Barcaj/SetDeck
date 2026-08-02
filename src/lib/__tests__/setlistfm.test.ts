@@ -1,0 +1,118 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { fetchArtistSetlists, fetchLast10Shows } from '../setlistfm';
+
+describe('Setlist.fm API Client Library', () => {
+  const originalEnv = process.env;
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    process.env = {
+      ...originalEnv,
+      SETLISTFM_API_KEY: 'test_setlistfm_api_key',
+    };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+    global.fetch = originalFetch;
+  });
+
+  describe('fetchArtistSetlists', () => {
+    it('returns empty structure if status is 404', async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        status: 404,
+        ok: false,
+      } as Response);
+
+      const res = await fetchArtistSetlists('unknown_mbid');
+      expect(res).toEqual({
+        type: 'setlists',
+        items: [],
+        total: 0,
+        page: 1,
+        itemsPerPage: 20,
+      });
+    });
+
+    it('throws error when response status is non-ok and not 404', async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        status: 500,
+        statusText: 'Internal Server Error',
+        ok: false,
+      } as Response);
+
+      await expect(fetchArtistSetlists('mbid_123')).rejects.toThrow(
+        'Setlist.fm API error: 500 Internal Server Error'
+      );
+    });
+
+    it('returns json payload on success', async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        status: 200,
+        ok: true,
+        json: async () => ({
+          type: 'setlists',
+          total: 100,
+          page: 1,
+          itemsPerPage: 20,
+          setlist: [{ id: 'show_1' }],
+        }),
+      } as Response);
+
+      const res = await fetchArtistSetlists('mbid_123', 1);
+      expect(res.total).toBe(100);
+      expect(res.setlist).toHaveLength(1);
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://api.setlist.fm/rest/1.0/artist/mbid_123/setlists?p=1',
+        expect.objectContaining({
+          headers: {
+            'x-api-key': 'test_setlistfm_api_key',
+            Accept: 'application/json',
+          },
+        })
+      );
+    });
+  });
+
+  describe('fetchLast10Shows', () => {
+    it('filters out empty shows and collects up to 10 valid shows', async () => {
+      const validShow = (id: string) => ({
+        id,
+        eventDate: '01-08-2026',
+        venue: { name: 'Stadium', city: { name: 'London', country: { name: 'UK', code: 'GB' } } },
+        sets: {
+          set: [{ song: [{ name: 'Track 1' }, { name: 'Track 2' }] }],
+        },
+      });
+
+      const emptyShow = (id: string) => ({
+        id,
+        eventDate: '02-08-2026',
+        venue: { name: 'Arena', city: { name: 'Paris', country: { name: 'FR', code: 'FR' } } },
+        sets: {
+          set: [],
+        },
+      });
+
+      // Mock page 1 returning 2 valid shows and 1 empty show
+      global.fetch = vi.fn().mockResolvedValue({
+        status: 200,
+        ok: true,
+        json: async () => ({
+          type: 'setlists',
+          total: 3,
+          page: 1,
+          itemsPerPage: 20,
+          artist: { name: 'Metallica' },
+          setlist: [validShow('s1'), emptyShow('s2'), validShow('s3')],
+        }),
+      } as Response);
+
+      const result = await fetchLast10Shows('mbid_metallica');
+      expect(result.artistName).toBe('Metallica');
+      expect(result.shows).toHaveLength(2);
+      expect(result.shows.map((s) => s.id)).toEqual(['s1', 's3']);
+    });
+  });
+});
