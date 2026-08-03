@@ -29,34 +29,42 @@ export async function POST(request: Request) {
 
     console.log(`[Export Route] Processing export: artist="${effectiveArtist || 'Unknown'}", tracksCount=${tracks.length}`);
 
-    // Resolve track URIs concurrently
-    const resolvedItems = await Promise.all(
-      (tracks as AggregatedTrack[]).map(async (track) => {
-        const normalizedExisting = track.spotifyUri ? normalizeSpotifyTrackUri(track.spotifyUri) : null;
-        if (normalizedExisting) {
-          return {
-            uri: normalizedExisting,
-            name: track.name,
-            artist: (track.isCover && track.coverArtist) ? track.coverArtist : effectiveArtist,
-          };
-        }
+    // Resolve track URIs in bounded batches
+    const trackList = tracks as AggregatedTrack[];
+    const BATCH_SIZE = 5;
+    const resolvedItems: Array<{ uri: string; name: string; artist: string } | null> = [];
 
-        const searchArtist = (track.isCover && track.coverArtist)
-          ? track.coverArtist
-          : effectiveArtist;
+    for (let i = 0; i < trackList.length; i += BATCH_SIZE) {
+      const batch = trackList.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.all(
+        batch.map(async (track) => {
+          const normalizedExisting = track.spotifyUri ? normalizeSpotifyTrackUri(track.spotifyUri) : null;
+          if (normalizedExisting) {
+            return {
+              uri: normalizedExisting,
+              name: track.name,
+              artist: (track.isCover && track.coverArtist) ? track.coverArtist : effectiveArtist,
+            };
+          }
 
-        const result = await searchSpotifyTrack(searchArtist, track.name, accessToken);
-        const resolvedUri = result?.uri ? normalizeSpotifyTrackUri(result.uri) : null;
-        if (resolvedUri) {
-          return {
-            uri: resolvedUri,
-            name: track.name,
-            artist: result?.artists?.[0]?.name || searchArtist,
-          };
-        }
-        return null;
-      })
-    );
+          const searchArtist = (track.isCover && track.coverArtist)
+            ? track.coverArtist
+            : effectiveArtist;
+
+          const result = await searchSpotifyTrack(searchArtist, track.name, accessToken);
+          const resolvedUri = result?.uri ? normalizeSpotifyTrackUri(result.uri) : null;
+          if (resolvedUri) {
+            return {
+              uri: resolvedUri,
+              name: track.name,
+              artist: result?.artists?.[0]?.name || searchArtist,
+            };
+          }
+          return null;
+        })
+      );
+      resolvedItems.push(...batchResults);
+    }
 
     const validMatches = resolvedItems.filter((item): item is { uri: string; name: string; artist: string } => Boolean(item && item.uri));
     const trackUris = validMatches.map((m) => m.uri);

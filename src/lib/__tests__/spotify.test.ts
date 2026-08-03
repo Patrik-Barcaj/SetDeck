@@ -6,6 +6,7 @@ import {
   normalizeSpotifyTrackUri,
   addTracksToSpotifyPlaylist,
   createSpotifyPlaylist,
+  _clearSpotifyCacheForTesting,
 } from '../spotify';
 
 describe('Spotify API Client Library', () => {
@@ -14,6 +15,7 @@ describe('Spotify API Client Library', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    _clearSpotifyCacheForTesting();
     process.env = {
       ...originalEnv,
       SPOTIFY_CLIENT_ID: 'test_client_id',
@@ -201,7 +203,7 @@ describe('Spotify API Client Library', () => {
       expect(global.fetch).toHaveBeenCalledTimes(2);
       expect(global.fetch).toHaveBeenNthCalledWith(
         1,
-        'https://api.spotify.com/v1/playlists/pl_123/tracks',
+        'https://api.spotify.com/v1/playlists/pl_123/items',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({
@@ -211,7 +213,7 @@ describe('Spotify API Client Library', () => {
       );
       expect(global.fetch).toHaveBeenNthCalledWith(
         2,
-        'https://api.spotify.com/v1/playlists/pl_123/tracks',
+        'https://api.spotify.com/v1/playlists/pl_123/items',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({

@@ -6,7 +6,9 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const error = searchParams.get('error');
 
-  const origin = 'http://127.0.0.1:3000';
+  const host = request.headers.get('host') || '127.0.0.1:3000';
+  const proto = request.headers.get('x-forwarded-proto') || 'http';
+  const origin = `${proto}://${host}`;
 
   if (error || !code) {
     console.error('Spotify OAuth callback error:', error);
@@ -39,6 +41,7 @@ export async function GET(request: NextRequest) {
     }
 
     const tokenData = await tokenRes.json();
+    console.log('[Spotify Auth] Granted scopes:', tokenData.scope);
 
     // Fetch Spotify profile
     const profileRes = await fetch('https://api.spotify.com/v1/me', {
