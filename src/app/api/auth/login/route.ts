@@ -4,8 +4,12 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const returnTo = searchParams.get('returnTo') || '/';
 
+  const host = request.headers.get('host') || '127.0.0.1:3000';
+  const proto = request.headers.get('x-forwarded-proto') || 'http';
+  const origin = `${proto}://${host}`;
+  
   const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const redirectUri = process.env.REDIRECT_URI || 'http://127.0.0.1:3000/api/auth/callback/spotify';
+  const redirectUri = process.env.REDIRECT_URI || `${origin}/api/auth/callback/spotify`;
 
   if (!clientId) {
     return NextResponse.json({ error: 'Missing SPOTIFY_CLIENT_ID' }, { status: 500 });
