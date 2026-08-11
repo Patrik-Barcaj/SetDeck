@@ -11,7 +11,7 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-gradient-to-b from-background via-background to-[#082010]">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-gradient-to-b from-background via-background to-[#082010]">
       {/* Background gradients */}
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-setdeck-gold/10 blur-[120px] pointer-events-none animate-mesh-flow" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-setdeck-gold/5 blur-[120px] pointer-events-none animate-mesh-flow" style={{ animationDelay: '5s' }} />
@@ -69,6 +69,6 @@ export default function Home() {
           </motion.div>
         )}
       </motion.div>
-    </main>
+    </div>
   );
 }

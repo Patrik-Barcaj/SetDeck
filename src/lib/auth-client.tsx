@@ -65,8 +65,9 @@ export function useSession() {
   return context;
 }
 
-export function signIn(provider?: string) {
-  window.location.href = '/api/auth/login';
+export function signIn(provider?: string, returnTo?: string) {
+  const currentPath = returnTo || window.location.pathname + window.location.search;
+  window.location.href = `/api/auth/login?returnTo=${encodeURIComponent(currentPath)}`;
 }
 
 export async function signOut(options?: { callbackUrl?: string }) {

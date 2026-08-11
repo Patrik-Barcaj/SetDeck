@@ -132,7 +132,7 @@ export async function searchSpotifyTrack(
     return trackSearchMemoryCache.get(cacheKey) || null;
   }
 
-  let effectiveToken = token;
+  const effectiveToken = token;
 
   // Build prioritized list of search queries
   const queries: string[] = [];
@@ -143,7 +143,10 @@ export async function searchSpotifyTrack(
   queries.push(`track:${cleanTrack}`);
   queries.push(cleanTrack);
 
+  let rateLimitedFully = false;
+
   for (const q of queries) {
+    if (rateLimitedFully) break;
     try {
       const url = `${SPOTIFY_API_URL}/search?q=${encodeURIComponent(q)}&type=track&limit=5`;
       let res = await fetch(url, {
@@ -153,16 +156,24 @@ export async function searchSpotifyTrack(
       if (res.status === 401) {
         const clientToken = await getClientCredentialsToken();
         if (clientToken && clientToken !== effectiveToken) {
-          effectiveToken = clientToken;
           res = await fetch(url, {
-            headers: { Authorization: `Bearer ${effectiveToken}` },
+            headers: { Authorization: `Bearer ${clientToken}` },
           });
         }
       }
 
+      // On 429, wait the suggested retry-after time and retry once
       if (res.status === 429) {
-        console.warn(`[Spotify Search] Rate limited on query "${q}"`);
-        break;
+        const retryAfter = parseInt(res.headers.get('Retry-After') || '2', 10);
+        const waitMs = Math.min(retryAfter * 1000, 5000); // Cap at 5s
+        await new Promise(resolve => setTimeout(resolve, waitMs));
+        res = await fetch(url, {
+          headers: { Authorization: `Bearer ${effectiveToken}` },
+        });
+        if (res.status === 429) {
+          rateLimitedFully = true;
+          break;
+        }
       }
 
       if (res.ok) {
@@ -275,15 +286,31 @@ export async function addTracksToSpotifyPlaylist(
           break;
         }
 
+        // If 429 rate limit, wait and retry the same endpoint
+        if (res.status === 429) {
+          const retryAfter = parseInt(res.headers.get('Retry-After') || '3', 10);
+          await new Promise((r) => setTimeout(r, Math.max(retryAfter * 1000, 2000)));
+          const retryRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ uris: chunk }),
+          });
+          if (retryRes.ok) {
+            console.log(`[Spotify API] Successfully added ${chunk.length} tracks on retry.`);
+            success = true;
+            break;
+          }
+          const retryErr = await retryRes.text();
+          lastError = `retry status ${retryRes.status}: ${retryErr}`;
+          continue;
+        }
+
         const errText = await res.text();
         lastError = `status ${res.status}: ${errText}`;
         console.warn(`[Spotify API] ${endpoint} returned ${lastError}`);
-
-        // If 429 rate limit, wait briefly
-        if (res.status === 429) {
-          const retryAfter = parseInt(res.headers.get('Retry-After') || '2', 10);
-          await new Promise((r) => setTimeout(r, Math.max(retryAfter * 1000, 1500)));
-        }
       } catch (err) {
         lastError = err instanceof Error ? err.message : String(err);
       }
@@ -324,6 +351,25 @@ export async function createSpotifyPlaylist(
   if (createRes.ok) {
     playlist = await createRes.json();
     console.log(`[Spotify API] Playlist created successfully via /me/playlists: ${playlist?.id}`);
+  } else if (createRes.status === 429) {
+    // Rate limited — wait and retry once
+    const retryAfter = parseInt(createRes.headers.get('Retry-After') || '3', 10);
+    await new Promise(r => setTimeout(r, Math.max(retryAfter * 1000, 2000)));
+    const retryRes = await fetch(`${SPOTIFY_API_URL}/me/playlists`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, description, public: isPublic }),
+    });
+    if (retryRes.ok) {
+      playlist = await retryRes.json();
+      console.log(`[Spotify API] Playlist created on retry: ${playlist?.id}`);
+    } else {
+      const errText = await retryRes.text();
+      console.warn(`[Spotify API] POST /me/playlists retry returned status ${retryRes.status}:`, errText);
+    }
   } else {
     const errText = await createRes.text();
     console.warn(`[Spotify API] POST /me/playlists returned status ${createRes.status}:`, errText);

@@ -5,6 +5,21 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const error = searchParams.get('error');
+  const stateParam = searchParams.get('state');
+
+  // Parse returnTo from OAuth state
+  let returnTo = '/';
+  if (stateParam) {
+    try {
+      const decoded = Buffer.from(stateParam, 'base64').toString('utf-8');
+      const parsed = JSON.parse(decoded);
+      if (parsed.returnTo && typeof parsed.returnTo === 'string') {
+        returnTo = parsed.returnTo;
+      }
+    } catch {
+      // Invalid state, default to home
+    }
+  }
 
   const host = request.headers.get('host') || '127.0.0.1:3000';
   const proto = request.headers.get('x-forwarded-proto') || 'http';
@@ -71,7 +86,7 @@ export async function GET(request: NextRequest) {
     };
 
     const encoded = encodeSession(session);
-    const response = NextResponse.redirect(`${origin}/`);
+    const response = NextResponse.redirect(`${origin}${returnTo}`);
 
     response.cookies.set({
       name: COOKIE_NAME,

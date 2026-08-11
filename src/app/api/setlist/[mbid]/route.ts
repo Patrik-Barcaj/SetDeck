@@ -51,31 +51,28 @@ export async function GET(
       const spotifyToken = session?.accessToken || (await getClientCredentialsToken());
       
       if (spotifyToken) {
-        // Hydrate tracks in batches to avoid rate limit spikes
-        const BATCH_SIZE = 5;
+        // Hydrate tracks sequentially with delay to avoid rate limit spikes
         const results = [];
-        for (let i = 0; i < aggregated.length; i += BATCH_SIZE) {
-          const batch = aggregated.slice(i, i + BATCH_SIZE);
-          const batchResults = await Promise.all(
-            batch.map(async (track) => {
-              const searchArtist = track.isCover && track.coverArtist 
-                ? track.coverArtist 
-                : (resolvedArtistName !== 'Unknown Artist' ? resolvedArtistName : '');
+        for (const track of aggregated) {
+          const searchArtist = track.isCover && track.coverArtist 
+            ? track.coverArtist 
+            : (resolvedArtistName !== 'Unknown Artist' ? resolvedArtistName : '');
 
-              const spotifyResult = await searchSpotifyTrack(searchArtist, track.name, spotifyToken);
-              
-              if (spotifyResult) {
-                return {
-                  ...track,
-                  spotifyUri: spotifyResult.uri,
-                  previewUrl: spotifyResult.preview_url || null,
-                  durationMs: spotifyResult.duration_ms,
-                };
-              }
-              return track;
-            })
-          );
-          results.push(...batchResults);
+          const spotifyResult = await searchSpotifyTrack(searchArtist, track.name, spotifyToken);
+          
+          if (spotifyResult) {
+            results.push({
+              ...track,
+              spotifyUri: spotifyResult.uri,
+              previewUrl: spotifyResult.preview_url || null,
+              durationMs: spotifyResult.duration_ms,
+            });
+          } else {
+            results.push(track);
+          }
+
+          // Small delay between searches to stay within rate limits
+          await new Promise(resolve => setTimeout(resolve, 150));
         }
         hydratedTracks = results;
       }

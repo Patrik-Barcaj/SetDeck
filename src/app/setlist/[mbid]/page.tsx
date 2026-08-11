@@ -59,7 +59,7 @@ export default function SetlistStudio() {
   }
 
   return (
-    <main className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative">
       {isLoading ? (
         <div className="w-full max-w-4xl mx-auto px-6 py-16">
           <div className="h-32 bg-muted rounded-3xl mb-8 animate-pulse"></div>
@@ -74,6 +74,6 @@ export default function SetlistStudio() {
           <ActionBar />
         </>
       )}
-    </main>
+    </div>
   );
 }

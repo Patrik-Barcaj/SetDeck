@@ -41,6 +41,16 @@ export function SearchBar() {
   const handleSelectArtist = async (artist: ArtistResult) => {
     setIsLoading(true);
     try {
+      // If the search result already has an mbid (from setlist.fm), use it directly
+      const mbid = (artist as ArtistResult & { mbid?: string }).mbid;
+      if (mbid) {
+        const imageUrl = artist.images && artist.images.length > 0 ? artist.images[0].url : undefined;
+        addSearch({ id: mbid, name: artist.name, imageUrl });
+        router.push(`/setlist/${mbid}?artistName=${encodeURIComponent(artist.name)}`);
+        return;
+      }
+
+      // Fallback: resolve via setlist.fm API
       const res = await fetch(`/api/setlist/resolve?artistName=${encodeURIComponent(artist.name)}`);
       if (!res.ok) {
         if (res.status === 404) {

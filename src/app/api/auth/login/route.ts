@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const returnTo = searchParams.get('returnTo') || '/';
+
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const redirectUri = process.env.REDIRECT_URI || 'http://127.0.0.1:3000/api/auth/callback/spotify';
 
@@ -23,6 +26,7 @@ export async function GET() {
   authUrl.searchParams.append('scope', scopes);
   authUrl.searchParams.append('redirect_uri', redirectUri);
   authUrl.searchParams.append('show_dialog', 'true');
+  authUrl.searchParams.append('state', Buffer.from(JSON.stringify({ returnTo })).toString('base64'));
 
   return NextResponse.redirect(authUrl.toString());
 }
