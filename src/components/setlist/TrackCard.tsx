@@ -2,7 +2,7 @@
 
 import { AggregatedTrack } from '@/types';
 import { LikelihoodBadge } from '../shared/LikelihoodBadge';
-import { Music, Trash2, Play, Square } from 'lucide-react';
+import { Minus, Plus, Trash2, Play, Square } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
@@ -89,10 +89,6 @@ export function TrackCard({ track, onRemove, onToggleExclude }: TrackCardProps) 
           isExcluded ? 'opacity-40' : ''
         }`}
       >
-        <div className="w-10 h-10 rounded bg-secondary/50 flex items-center justify-center flex-shrink-0">
-          <Music className="w-4 h-4 text-muted-foreground" />
-        </div>
-
         <button
           type="button"
           onClick={(e) => {
@@ -100,8 +96,21 @@ export function TrackCard({ track, onRemove, onToggleExclude }: TrackCardProps) 
             onToggleExclude(track.id);
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="flex-1 overflow-hidden text-left cursor-pointer"
+          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border transition-all ${
+            isExcluded
+              ? 'border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10'
+              : 'border-red-500/40 text-red-400 hover:bg-red-500/10'
+          }`}
+          aria-label={isExcluded ? 'Re-include track' : 'Exclude track'}
         >
+          {isExcluded ? (
+            <Plus className="w-4 h-4" />
+          ) : (
+            <Minus className="w-4 h-4" />
+          )}
+        </button>
+
+        <div className="flex-1 overflow-hidden">
           <h4 className={`text-base font-bold truncate pr-2 transition-all ${
             isExcluded ? 'line-through text-muted-foreground decoration-2' : ''
           }`}>{track.name}</h4>
@@ -110,7 +119,7 @@ export function TrackCard({ track, onRemove, onToggleExclude }: TrackCardProps) 
               Cover: {track.coverArtist}
             </p>
           )}
-        </button>
+        </div>
 
         <div className="flex items-center flex-shrink-0 gap-2">
           {track.previewUrl && !isExcluded && (
