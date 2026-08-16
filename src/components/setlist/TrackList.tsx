@@ -20,7 +20,7 @@ import {
 import { AnimatePresence, motion } from 'framer-motion';
 
 export function TrackList() {
-  const { tracks, reorderTracks, removeTrack } = useSetlistStore();
+  const { tracks, reorderTracks, removeTrack, toggleExclude } = useSetlistStore();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -66,7 +66,7 @@ export function TrackList() {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                <TrackCard track={track} onRemove={removeTrack} />
+                <TrackCard track={track} onRemove={removeTrack} onToggleExclude={toggleExclude} />
               </motion.div>
             ))}
           </AnimatePresence>

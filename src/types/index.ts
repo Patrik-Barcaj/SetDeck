@@ -53,6 +53,7 @@ export interface AggregatedTrack {
   previewUrl?: string | null;
   durationMs?: number;
   spotifyUri?: string;
+  excluded?: boolean;
 }
 
 export interface SetlistData {

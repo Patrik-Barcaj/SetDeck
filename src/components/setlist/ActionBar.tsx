@@ -11,6 +11,7 @@ import { SuccessModal } from './SuccessModal';
 
 export function ActionBar() {
   const { data, tracks } = useSetlistStore();
+  const activeTracks = tracks.filter((t) => !t.excluded);
   const { settings } = useAppSettings();
   const { addSearch } = useRecentSearches();
   const { data: session } = useSession();
@@ -26,7 +27,7 @@ export function ActionBar() {
   }, [settings?.playlistVisibility]);
 
   const handleExport = async () => {
-    if (!data || tracks.length === 0) {
+    if (!data || activeTracks.length === 0) {
       toast.error('No tracks available to export');
       return;
     }
@@ -46,7 +47,7 @@ export function ActionBar() {
         body: JSON.stringify({
           artistName: data.artistName,
           tourName: data.tourName,
-          tracks: tracks,
+          tracks: activeTracks,
           isPublic,
         }),
       });
@@ -97,7 +98,7 @@ export function ActionBar() {
         <div className="max-w-4xl mx-auto flex items-center justify-center md:justify-end gap-4 pointer-events-auto">
           <div className="hidden md:flex flex-col gap-1 text-right mr-4 bg-background/90 p-2.5 rounded-xl border border-border/50 backdrop-blur-md shadow-lg">
             <p className="text-xs text-muted-foreground">
-              <span className="font-bold text-foreground">{tracks.length}</span> tracks ready
+              <span className="font-bold text-foreground">{activeTracks.length}</span> tracks ready
             </p>
             <label className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors">
               <input 
@@ -112,7 +113,7 @@ export function ActionBar() {
 
           <button
             onClick={handleExport}
-            disabled={isExporting || tracks.length === 0}
+            disabled={isExporting || activeTracks.length === 0}
             className="flex-1 md:flex-none w-full md:w-96 bg-gradient-to-r from-setdrift-gold via-amber-400 to-amber-300 text-black font-black text-sm md:text-base py-4 px-8 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2.5 shadow-[0_0_35px_rgba(244,168,54,0.35)] hover:shadow-[0_0_50px_rgba(244,168,54,0.6)] cursor-pointer"
           >
             {isExporting ? (

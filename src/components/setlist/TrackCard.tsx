@@ -11,9 +11,10 @@ import { useState, useRef } from 'react';
 interface TrackCardProps {
   track: AggregatedTrack;
   onRemove: (id: string) => void;
+  onToggleExclude: (id: string) => void;
 }
 
-export function TrackCard({ track, onRemove }: TrackCardProps) {
+export function TrackCard({ track, onRemove, onToggleExclude }: TrackCardProps) {
   const {
     attributes,
     listeners,
@@ -53,6 +54,8 @@ export function TrackCard({ track, onRemove }: TrackCardProps) {
     }
   };
 
+  const isExcluded = track.excluded ?? false;
+
   return (
     <div
       ref={setNodeRef}
@@ -82,23 +85,35 @@ export function TrackCard({ track, onRemove }: TrackCardProps) {
         style={{ x }}
         {...attributes}
         {...listeners}
-        className="relative bg-background/80 backdrop-blur-sm flex items-center gap-3 py-3 px-2 w-full touch-pan-y"
+        className={`relative bg-background/80 backdrop-blur-sm flex items-center gap-3 py-3 px-2 w-full touch-pan-y ${
+          isExcluded ? 'opacity-40' : ''
+        }`}
       >
         <div className="w-10 h-10 rounded bg-secondary/50 flex items-center justify-center flex-shrink-0">
           <Music className="w-4 h-4 text-muted-foreground" />
         </div>
 
-        <div className="flex-1 overflow-hidden">
-          <h4 className="text-base font-bold truncate pr-2">{track.name}</h4>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleExclude(track.id);
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="flex-1 overflow-hidden text-left cursor-pointer"
+        >
+          <h4 className={`text-base font-bold truncate pr-2 transition-all ${
+            isExcluded ? 'line-through text-muted-foreground decoration-2' : ''
+          }`}>{track.name}</h4>
           {track.isCover && (
             <p className="text-xs text-muted-foreground truncate">
               Cover: {track.coverArtist}
             </p>
           )}
-        </div>
+        </button>
 
         <div className="flex items-center flex-shrink-0 gap-2">
-          {track.previewUrl && (
+          {track.previewUrl && !isExcluded && (
             <button
               onClick={togglePlay}
               onPointerDown={(e) => e.stopPropagation()} // Prevent drag conflict
@@ -107,7 +122,7 @@ export function TrackCard({ track, onRemove }: TrackCardProps) {
               {isPlaying ? <Square className="w-3 h-3 fill-black" /> : <Play className="w-3.5 h-3.5 fill-black ml-0.5" />}
             </button>
           )}
-          <LikelihoodBadge type={track.badge} likelihood={track.likelihood} />
+          {!isExcluded && <LikelihoodBadge type={track.badge} likelihood={track.likelihood} />}
         </div>
         
         {track.previewUrl && (
@@ -123,3 +138,4 @@ export function TrackCard({ track, onRemove }: TrackCardProps) {
     </div>
   );
 }
+

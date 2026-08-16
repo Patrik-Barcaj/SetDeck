@@ -8,6 +8,7 @@ interface SetlistStore {
   addTrack: (track: AggregatedTrack) => void;
   removeTrack: (id: string) => void;
   reorderTracks: (activeId: string, overId: string) => void;
+  toggleExclude: (id: string) => void;
   toggleShuffle: () => void;
   reset: () => void;
 }
@@ -37,6 +38,12 @@ export const useSetlistStore = create<SetlistStore>((set) => ({
 
       return { tracks: newTracks };
     }),
+  toggleExclude: (id) =>
+    set((state) => ({
+      tracks: state.tracks.map((t) =>
+        t.id === id ? { ...t, excluded: !t.excluded } : t
+      ),
+    })),
   toggleShuffle: () =>
     set((state) => {
       const shuffled = [...state.tracks].sort(() => Math.random() - 0.5);
