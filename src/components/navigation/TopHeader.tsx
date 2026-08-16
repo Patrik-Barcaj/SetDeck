@@ -3,7 +3,8 @@
 import { useSession, signIn, signOut } from '@/lib/auth-client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ChevronLeft, LogOut, Disc, LogIn } from 'lucide-react';
+import { ChevronLeft, LogOut, LogIn } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 export function TopHeader() {
   const { data: session } = useSession();
@@ -11,7 +12,7 @@ export function TopHeader() {
   const router = useRouter();
 
   const isHome = pathname === '/';
-  const title = isHome ? 'SetDrift' : pathname.startsWith('/setlist/') ? 'Setlist Studio' : pathname === '/saved' ? 'Saved Setlists' : pathname === '/settings' ? 'Settings' : 'SetDrift';
+  const title = isHome ? '' : pathname.startsWith('/setlist/') ? 'Setlist Studio' : pathname === '/saved' ? 'Saved Setlists' : pathname === '/settings' ? 'Settings' : 'SetDrift';
 
   return (
     <div className="fixed top-0 left-0 right-0 h-14 bg-background/90 backdrop-blur-lg border-b border-border/40 z-50 flex items-center justify-between px-4">
@@ -21,8 +22,9 @@ export function TopHeader() {
             <ChevronLeft className="w-6 h-6" />
           </button>
         ) : (
-          <Link href="/" className="flex items-center gap-2 text-setdrift-gold font-bold">
-            <Disc className="w-5 h-5 animate-[spin_4s_linear_infinite]" />
+          <Link href="/" className="flex items-center gap-2">
+            <Logo size={28} />
+            <span className="text-sm font-bold tracking-wider text-white">SetDrift</span>
           </Link>
         )}
       </div>

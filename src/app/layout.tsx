@@ -11,6 +11,12 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'SetDrift',
   description: 'Convert Setlist.fm concerts to Spotify playlists.',
+  manifest: '/manifest.json',
+  icons: [
+    { rel: 'icon', url: '/logo.svg', type: 'image/svg+xml' },
+    { rel: 'apple-touch-icon', url: '/icon-192.svg' },
+  ],
+  themeColor: '#0D0E12',
 };
 
 export default function RootLayout({
@@ -20,6 +26,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+      </head>
       <body className={inter.className}>
         <Providers>
           <TopHeader />

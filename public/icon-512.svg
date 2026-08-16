@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="102" fill="#0D0E12"/>
+  <!-- Track 1 (Top) -->
+  <rect x="115" y="134" width="173" height="51" rx="25.5" fill="#D97706"/>
+  <!-- Track 2 (Middle - Offset / Drift) -->
+  <rect x="166" y="230" width="230" height="51" rx="25.5" fill="#F59E0B"/>
+  <!-- Track 3 (Bottom) -->
+  <rect x="115" y="326" width="173" height="51" rx="25.5" fill="#FBBF24"/>
+</svg>
