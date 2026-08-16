@@ -96,7 +96,7 @@ export function TrackCard({ track, onRemove, onToggleExclude }: TrackCardProps) 
             onToggleExclude(track.id);
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border transition-all ${
+          className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 border transition-all ${
             isExcluded
               ? 'border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10'
               : 'border-red-500/40 text-red-400 hover:bg-red-500/10'
@@ -104,9 +104,9 @@ export function TrackCard({ track, onRemove, onToggleExclude }: TrackCardProps) 
           aria-label={isExcluded ? 'Re-include track' : 'Exclude track'}
         >
           {isExcluded ? (
-            <Plus className="w-4 h-4" />
+            <Plus className="w-2.5 h-2.5" />
           ) : (
-            <Minus className="w-4 h-4" />
+            <Minus className="w-2.5 h-2.5" />
           )}
         </button>
 
