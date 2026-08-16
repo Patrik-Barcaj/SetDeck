@@ -51,30 +51,28 @@ export async function GET(
       const spotifyToken = session?.accessToken || (await getClientCredentialsToken());
       
       if (spotifyToken) {
-        // Hydrate tracks sequentially with delay to avoid rate limit spikes
-        const results = [];
-        for (const track of aggregated) {
+        // Hydrate tracks in parallel to eliminate waterfall
+        hydratedTracks = await Promise.all(aggregated.map(async (track) => {
           const searchArtist = track.isCover && track.coverArtist 
             ? track.coverArtist 
             : (resolvedArtistName !== 'Unknown Artist' ? resolvedArtistName : '');
 
-          const spotifyResult = await searchSpotifyTrack(searchArtist, track.name, spotifyToken);
-          
-          if (spotifyResult) {
-            results.push({
-              ...track,
-              spotifyUri: spotifyResult.uri,
-              previewUrl: spotifyResult.preview_url || null,
-              durationMs: spotifyResult.duration_ms,
-            });
-          } else {
-            results.push(track);
+          try {
+            const spotifyResult = await searchSpotifyTrack(searchArtist, track.name, spotifyToken);
+            if (spotifyResult) {
+              return {
+                ...track,
+                spotifyUri: spotifyResult.uri,
+                previewUrl: spotifyResult.preview_url || null,
+                durationMs: spotifyResult.duration_ms,
+              };
+            }
+          } catch (err) {
+            console.warn(`Failed to hydrate track ${track.name}:`, err);
           }
-
-          // Small delay between searches to stay within rate limits
-          await new Promise(resolve => setTimeout(resolve, 150));
-        }
-        hydratedTracks = results;
+          
+          return track;
+        }));
       }
     } catch (spotifyErr) {
       console.warn('Failed to hydrate Spotify data during aggregation:', spotifyErr);
