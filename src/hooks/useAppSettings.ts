@@ -14,7 +14,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   tourRegionDetection: true,
 };
 
-const STORAGE_KEY = 'setdeck_app_settings';
+const STORAGE_KEY = 'setdrift_app_settings';
 
 export function useAppSettings() {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);

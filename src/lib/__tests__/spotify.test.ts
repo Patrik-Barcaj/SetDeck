@@ -243,7 +243,7 @@ describe('Spotify API Client Library', () => {
       const playlist = await createSpotifyPlaylist(
         'user_123',
         'Live Setlist: Metallica',
-        'Generated with SetDeck',
+        'Generated with SetDrift',
         ['spotify:track:t1', 'spotify:track:t2'],
         'token_123',
         false
@@ -257,7 +257,7 @@ describe('Spotify API Client Library', () => {
           method: 'POST',
           body: JSON.stringify({
             name: 'Live Setlist: Metallica',
-            description: 'Generated with SetDeck',
+            description: 'Generated with SetDrift',
             public: false,
           }),
         })
@@ -282,7 +282,7 @@ describe('Spotify API Client Library', () => {
       const playlist = await createSpotifyPlaylist(
         'user_123',
         'Live Setlist: Metallica',
-        'Generated with SetDeck',
+        'Generated with SetDrift',
         [],
         'token_123',
         false

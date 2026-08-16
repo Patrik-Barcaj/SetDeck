@@ -10,7 +10,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'setdeck-gold': '#F4A836',
+        'setdrift-gold': '#F4A836',
         border: 'var(--border)',
         input: 'var(--input)',
         ring: 'var(--ring)',

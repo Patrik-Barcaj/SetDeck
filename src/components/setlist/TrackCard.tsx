@@ -102,7 +102,7 @@ export function TrackCard({ track, onRemove }: TrackCardProps) {
             <button
               onClick={togglePlay}
               onPointerDown={(e) => e.stopPropagation()} // Prevent drag conflict
-              className="w-7 h-7 flex items-center justify-center rounded-full bg-setdeck-gold text-black hover:scale-110 active:scale-95 transition-transform"
+              className="w-7 h-7 flex items-center justify-center rounded-full bg-setdrift-gold text-black hover:scale-110 active:scale-95 transition-transform"
             >
               {isPlaying ? <Square className="w-3 h-3 fill-black" /> : <Play className="w-3.5 h-3.5 fill-black ml-0.5" />}
             </button>

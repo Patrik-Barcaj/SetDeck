@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { encodeSession, COOKIE_NAME, SetDeckSession } from '@/lib/auth';
+import { encodeSession, COOKIE_NAME, SetDriftSession } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 
     const profile = await profileRes.json();
 
-    const session: SetDeckSession = {
+    const session: SetDriftSession = {
       user: {
         id: profile.id,
         name: profile.display_name || 'Spotify User',

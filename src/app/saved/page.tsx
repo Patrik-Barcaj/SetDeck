@@ -19,7 +19,7 @@ export default function SavedPage() {
       >
         <div>
           <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
-            <Library className="w-5 h-5 text-setdeck-gold" />
+            <Library className="w-5 h-5 text-setdrift-gold" />
             Saved & Recent
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -38,7 +38,7 @@ export default function SavedPage() {
             <div
               key={search.id}
               onClick={() => router.push(`/setlist/${search.id}?artistName=${encodeURIComponent(search.name)}`)}
-              className="flex items-center justify-between p-3.5 rounded-2xl bg-secondary/40 border border-border/40 hover:border-setdeck-gold/50 hover:bg-secondary/70 transition-all cursor-pointer group shadow-sm"
+              className="flex items-center justify-between p-3.5 rounded-2xl bg-secondary/40 border border-border/40 hover:border-setdrift-gold/50 hover:bg-secondary/70 transition-all cursor-pointer group shadow-sm"
             >
               <div className="flex items-center gap-3.5 min-w-0">
                 {search.imageUrl ? (
@@ -49,15 +49,15 @@ export default function SavedPage() {
                   />
                 ) : (
                   <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center border border-border shrink-0">
-                    <Disc className="w-6 h-6 text-setdeck-gold" />
+                    <Disc className="w-6 h-6 text-setdrift-gold" />
                   </div>
                 )}
                 <div className="min-w-0">
-                  <h3 className="font-bold text-sm truncate group-hover:text-setdeck-gold transition-colors">
+                  <h3 className="font-bold text-sm truncate group-hover:text-setdrift-gold transition-colors">
                     {search.name}
                   </h3>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                    <Music className="w-3 h-3 text-setdeck-gold" />
+                    <Music className="w-3 h-3 text-setdrift-gold" />
                     <span>Live Warm-Up Setlist</span>
                   </div>
                 </div>
@@ -74,7 +74,7 @@ export default function SavedPage() {
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
-                <div className="p-2 text-muted-foreground group-hover:text-setdeck-gold transition-colors">
+                <div className="p-2 text-muted-foreground group-hover:text-setdrift-gold transition-colors">
                   <ArrowRight className="w-4 h-4" />
                 </div>
               </div>
@@ -87,7 +87,7 @@ export default function SavedPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center justify-center text-center p-8 rounded-3xl bg-secondary/20 border border-border/40 mt-12 gap-4"
         >
-          <div className="w-16 h-16 rounded-full bg-setdeck-gold/10 border border-setdeck-gold/30 flex items-center justify-center text-setdeck-gold">
+          <div className="w-16 h-16 rounded-full bg-setdrift-gold/10 border border-setdrift-gold/30 flex items-center justify-center text-setdrift-gold">
             <Sparkles className="w-8 h-8" />
           </div>
           <div>
@@ -98,7 +98,7 @@ export default function SavedPage() {
           </div>
           <Link
             href="/"
-            className="px-5 py-2.5 rounded-xl bg-setdeck-gold text-black font-bold text-xs hover:bg-amber-400 transition-all shadow-md mt-2"
+            className="px-5 py-2.5 rounded-xl bg-setdrift-gold text-black font-bold text-xs hover:bg-amber-400 transition-all shadow-md mt-2"
           >
             Find an Artist
           </Link>

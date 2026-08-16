@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, POST } from '../export/route';
 import * as spotifyLib from '@/lib/spotify';
 import * as authLib from '@/lib/auth';
-import type { SetDeckSession } from '@/lib/auth';
+import type { SetDriftSession } from '@/lib/auth';
 
 vi.mock('@/lib/spotify', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/spotify')>();
@@ -41,7 +41,7 @@ describe('/api/setlist/export', () => {
     });
 
     it('returns 400 if tracks are missing or empty', async () => {
-      const mockSession: SetDeckSession = {
+      const mockSession: SetDriftSession = {
         accessToken: 'token_123',
         user: { id: 'u1', name: 'User 1' },
         providerAccountId: 'spotify_user_456',
@@ -57,7 +57,7 @@ describe('/api/setlist/export', () => {
     });
 
     it('resolves track URIs and calls createSpotifyPlaylist', async () => {
-      const mockSession: SetDeckSession = {
+      const mockSession: SetDriftSession = {
         accessToken: 'token_123',
         providerAccountId: 'spotify_user_456',
         user: { id: 'u1', name: 'User 1' },
@@ -103,7 +103,7 @@ describe('/api/setlist/export', () => {
       expect(spotifyLib.createSpotifyPlaylist).toHaveBeenCalledWith(
         'spotify_user_456',
         'Metallica - WorldWired Tour',
-        expect.stringContaining('SetDeck'),
+        expect.stringContaining('SetDrift'),
         ['spotify:track:resolved_trk1', 'spotify:track:pre_existing_uri'],
         'token_123',
         false
@@ -111,7 +111,7 @@ describe('/api/setlist/export', () => {
     });
 
     it('falls back gracefully when artistName is Unknown Artist', async () => {
-      const mockSession: SetDeckSession = {
+      const mockSession: SetDriftSession = {
         accessToken: 'token_123',
         providerAccountId: 'spotify_user_456',
         user: { id: 'u1', name: 'User 1' },

@@ -35,7 +35,7 @@ export function SetlistHeader() {
       {/* Action Buttons */}
       <div className="flex justify-between items-center mt-1">
         <div className="min-w-0 pr-2">
-          <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-setdeck-gold to-amber-300 truncate">
+          <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-setdrift-gold to-amber-300 truncate">
             {data.artistName !== 'Unknown Artist' ? data.artistName : 'Live Setlist'}
           </h2>
           <p className="text-xs text-muted-foreground truncate font-medium">
@@ -52,7 +52,7 @@ export function SetlistHeader() {
           </button>
           <button
             onClick={toggleShuffle}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-setdeck-gold text-black hover:bg-amber-400 hover:scale-105 active:scale-95 transition-all font-bold"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-setdrift-gold text-black hover:bg-amber-400 hover:scale-105 active:scale-95 transition-all font-bold"
           >
             <Shuffle className="w-4 h-4" />
             <span className="text-xs">Shuffle</span>

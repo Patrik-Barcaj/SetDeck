@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../search/route';
 import * as spotifyLib from '@/lib/spotify';
 import * as authLib from '@/lib/auth';
-import type { SetDeckSession } from '@/lib/auth';
+import type { SetDriftSession } from '@/lib/auth';
 
 vi.mock('@/lib/spotify');
 vi.mock('@/lib/auth');
@@ -25,7 +25,7 @@ describe('GET /api/setlist/search', () => {
   });
 
   it('returns merged results from setlist.fm and spotify', async () => {
-    const mockSession: SetDeckSession = {
+    const mockSession: SetDriftSession = {
       accessToken: 'test_token',
       user: { id: 'u1', name: 'User 1' },
       providerAccountId: 'spotify_u1',

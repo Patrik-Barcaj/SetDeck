@@ -34,7 +34,7 @@ export function SuccessModal({ url, imageUrl, onClose }: SuccessModalProps) {
           {imageUrl ? (
             <Image src={imageUrl} alt="Playlist Cover" fill className="object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-setdeck-gold/20">
+            <div className="w-full h-full flex items-center justify-center bg-setdrift-gold/20">
               <span className="text-6xl">🎵</span>
             </div>
           )}
@@ -50,7 +50,7 @@ export function SuccessModal({ url, imageUrl, onClose }: SuccessModalProps) {
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full py-3 bg-setdeck-gold text-black font-bold rounded-full flex items-center justify-center gap-2 hover:bg-setdeck-gold/90 transition-colors"
+            className="w-full py-3 bg-setdrift-gold text-black font-bold rounded-full flex items-center justify-center gap-2 hover:bg-setdrift-gold/90 transition-colors"
           >
             <ExternalLink className="w-5 h-5" />
             Open in Spotify

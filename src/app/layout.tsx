@@ -9,7 +9,7 @@ import { BottomNavigation } from '@/components/navigation/BottomNavigation';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'SetDeck',
+  title: 'SetDrift',
   description: 'Convert Setlist.fm concerts to Spotify playlists.',
 };
 

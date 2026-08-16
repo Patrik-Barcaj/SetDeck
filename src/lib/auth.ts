@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 
-export interface SetDeckSession {
+export interface SetDriftSession {
   user: {
     id: string;
     name: string;
@@ -13,7 +13,7 @@ export interface SetDeckSession {
   providerAccountId: string;
 }
 
-const COOKIE_NAME = 'setdeck_session';
+const COOKIE_NAME = 'setdrift_session';
 
 export async function refreshSpotifyToken(
   refreshToken: string
@@ -53,14 +53,14 @@ export async function refreshSpotifyToken(
   }
 }
 
-export async function auth(): Promise<SetDeckSession | null> {
+export async function auth(): Promise<SetDriftSession | null> {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(COOKIE_NAME)?.value;
   if (!sessionCookie) return null;
 
   try {
     const decoded = Buffer.from(sessionCookie, 'base64').toString('utf-8');
-    const session = JSON.parse(decoded) as SetDeckSession;
+    const session = JSON.parse(decoded) as SetDriftSession;
 
     // Auto-refresh expired or nearly expired tokens
     if (session.refreshToken && session.expiresAt && Date.now() > session.expiresAt - 60000) {
@@ -94,7 +94,7 @@ export async function auth(): Promise<SetDeckSession | null> {
   }
 }
 
-export function encodeSession(session: SetDeckSession): string {
+export function encodeSession(session: SetDriftSession): string {
   return Buffer.from(JSON.stringify(session)).toString('base64');
 }
 

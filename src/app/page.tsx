@@ -13,8 +13,8 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-gradient-to-b from-background via-background to-[#082010]">
       {/* Background gradients */}
-      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-setdeck-gold/10 blur-[120px] pointer-events-none animate-mesh-flow" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-setdeck-gold/5 blur-[120px] pointer-events-none animate-mesh-flow" style={{ animationDelay: '5s' }} />
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-setdrift-gold/10 blur-[120px] pointer-events-none animate-mesh-flow" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-setdrift-gold/5 blur-[120px] pointer-events-none animate-mesh-flow" style={{ animationDelay: '5s' }} />
 
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
@@ -23,10 +23,10 @@ export default function Home() {
         className="w-full max-w-4xl mx-auto flex flex-col items-center text-center z-10"
       >
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
-          Prepare for the <span className="text-transparent bg-clip-text bg-gradient-to-r from-setdeck-gold to-amber-300">Show</span>.
+          Prepare for the <span className="text-transparent bg-clip-text bg-gradient-to-r from-setdrift-gold to-amber-300">Show</span>.
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl font-medium leading-relaxed px-4">
-          SetDeck aggregates an artist&apos;s recent setlists to create the ultimate live warm-up playlist on Spotify.
+          SetDrift aggregates an artist&apos;s recent setlists to create the ultimate live warm-up playlist on Spotify.
         </p>
 
         <div className="w-full mb-16">

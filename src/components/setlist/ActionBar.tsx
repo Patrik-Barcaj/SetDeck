@@ -104,7 +104,7 @@ export function ActionBar() {
                 type="checkbox" 
                 checked={isPublic} 
                 onChange={(e) => setIsPublic(e.target.checked)}
-                className="accent-setdeck-gold cursor-pointer"
+                className="accent-setdrift-gold cursor-pointer"
               />
               Make playlist public
             </label>
@@ -113,7 +113,7 @@ export function ActionBar() {
           <button
             onClick={handleExport}
             disabled={isExporting || tracks.length === 0}
-            className="flex-1 md:flex-none w-full md:w-96 bg-gradient-to-r from-setdeck-gold via-amber-400 to-amber-300 text-black font-black text-sm md:text-base py-4 px-8 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2.5 shadow-[0_0_35px_rgba(244,168,54,0.35)] hover:shadow-[0_0_50px_rgba(244,168,54,0.6)] cursor-pointer"
+            className="flex-1 md:flex-none w-full md:w-96 bg-gradient-to-r from-setdrift-gold via-amber-400 to-amber-300 text-black font-black text-sm md:text-base py-4 px-8 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2.5 shadow-[0_0_35px_rgba(244,168,54,0.35)] hover:shadow-[0_0_50px_rgba(244,168,54,0.6)] cursor-pointer"
           >
             {isExporting ? (
               <>

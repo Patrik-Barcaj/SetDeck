@@ -46,7 +46,7 @@ export async function fetchMusicBrainzArtistName(mbid: string): Promise<string |
   try {
     const res = await fetch(`https://musicbrainz.org/ws/2/artist/${mbid}?fmt=json`, {
       headers: {
-        'User-Agent': 'SetDeck/1.0 (contact@setdeck.app)',
+        'User-Agent': 'SetDrift/1.0 (contact@setdrift.app)',
         Accept: 'application/json',
       },
       next: { revalidate: 86400 },

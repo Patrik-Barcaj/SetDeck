@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('SetDeck E2E', () => {
+test.describe('SetDrift E2E', () => {
   test('landing page and search', async ({ page }) => {
     await page.goto('/');
 

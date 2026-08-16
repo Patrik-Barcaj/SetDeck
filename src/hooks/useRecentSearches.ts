@@ -11,7 +11,7 @@ export function useRecentSearches() {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('setdeck_recent_searches');
+      const stored = localStorage.getItem('setdrift_recent_searches');
       if (stored) {
         setRecentSearches(JSON.parse(stored));
       }
@@ -25,7 +25,7 @@ export function useRecentSearches() {
       const filtered = prev.filter((s) => s.id !== search.id);
       const updated = [search, ...filtered].slice(0, 10);
       try {
-        localStorage.setItem('setdeck_recent_searches', JSON.stringify(updated));
+        localStorage.setItem('setdrift_recent_searches', JSON.stringify(updated));
       } catch (e) {
         console.error('Failed to save recent searches', e);
       }
@@ -37,7 +37,7 @@ export function useRecentSearches() {
     setRecentSearches((prev) => {
       const updated = prev.filter((s) => s.id !== id);
       try {
-        localStorage.setItem('setdeck_recent_searches', JSON.stringify(updated));
+        localStorage.setItem('setdrift_recent_searches', JSON.stringify(updated));
       } catch (e) {
         console.error('Failed to save recent searches', e);
       }

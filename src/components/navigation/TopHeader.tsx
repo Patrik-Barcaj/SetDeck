@@ -11,7 +11,7 @@ export function TopHeader() {
   const router = useRouter();
 
   const isHome = pathname === '/';
-  const title = isHome ? 'SetDeck' : pathname.startsWith('/setlist/') ? 'Setlist Studio' : pathname === '/saved' ? 'Saved Setlists' : pathname === '/settings' ? 'Settings' : 'SetDeck';
+  const title = isHome ? 'SetDrift' : pathname.startsWith('/setlist/') ? 'Setlist Studio' : pathname === '/saved' ? 'Saved Setlists' : pathname === '/settings' ? 'Settings' : 'SetDrift';
 
   return (
     <div className="fixed top-0 left-0 right-0 h-14 bg-background/90 backdrop-blur-lg border-b border-border/40 z-50 flex items-center justify-between px-4">
@@ -21,7 +21,7 @@ export function TopHeader() {
             <ChevronLeft className="w-6 h-6" />
           </button>
         ) : (
-          <Link href="/" className="flex items-center gap-2 text-setdeck-gold font-bold">
+          <Link href="/" className="flex items-center gap-2 text-setdrift-gold font-bold">
             <Disc className="w-5 h-5 animate-[spin_4s_linear_infinite]" />
           </Link>
         )}

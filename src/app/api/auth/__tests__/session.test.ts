@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../session/route';
 import * as authLib from '@/lib/auth';
-import type { SetDeckSession } from '@/lib/auth';
+import type { SetDriftSession } from '@/lib/auth';
 
 vi.mock('@/lib/auth');
 
@@ -26,7 +26,7 @@ describe('GET /api/auth/session', () => {
 
   it('returns user session details when authenticated', async () => {
     const expiresAt = Date.now() + 3600 * 1000;
-    const mockSession: SetDeckSession = {
+    const mockSession: SetDriftSession = {
       user: { id: 'u1', name: 'John Doe', email: 'john@example.com' },
       accessToken: 'access_token_xyz',
       providerAccountId: 'spotify_user_999',

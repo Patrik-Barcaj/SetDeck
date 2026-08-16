@@ -24,7 +24,7 @@ export function BottomNavigation() {
             key={item.name}
             href={item.href}
             className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${
-              isActive ? 'text-setdeck-gold' : 'text-muted-foreground hover:text-white'
+              isActive ? 'text-setdrift-gold' : 'text-muted-foreground hover:text-white'
             }`}
           >
             <Icon className={`w-6 h-6 ${isActive ? 'scale-110' : ''} transition-transform`} strokeWidth={isActive ? 2.5 : 2} />

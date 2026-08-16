@@ -64,12 +64,12 @@ export function AddTrackInput() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search to add missing track..."
-          className="w-full bg-secondary/50 border border-border/50 text-sm rounded-full pl-10 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-setdeck-gold transition-shadow placeholder:text-muted-foreground"
+          className="w-full bg-secondary/50 border border-border/50 text-sm rounded-full pl-10 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-setdrift-gold transition-shadow placeholder:text-muted-foreground"
         />
         <button
           type="submit"
           disabled={!query.trim() || isSearching}
-          className="absolute inset-y-1.5 right-1.5 flex items-center justify-center w-8 h-8 rounded-full bg-setdeck-gold text-black disabled:opacity-50 hover:scale-105 active:scale-95 transition-all"
+          className="absolute inset-y-1.5 right-1.5 flex items-center justify-center w-8 h-8 rounded-full bg-setdrift-gold text-black disabled:opacity-50 hover:scale-105 active:scale-95 transition-all"
         >
           {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
         </button>

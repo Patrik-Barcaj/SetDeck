@@ -22,12 +22,12 @@ export default function SettingsPage() {
   const { settings, updateSettings, resetSettings } = useAppSettings();
 
   const handleClearSearches = () => {
-    localStorage.removeItem('setdeck_recent_searches');
+    localStorage.removeItem('setdrift_recent_searches');
     toast.success('Recent searches cleared');
   };
 
   const handleClearCache = () => {
-    localStorage.removeItem('setdeck_recent_searches');
+    localStorage.removeItem('setdrift_recent_searches');
     resetSettings();
     toast.success('Local cache and preferences reset');
   };
@@ -52,7 +52,7 @@ export default function SettingsPage() {
                 <img
                   src={session.user.image}
                   alt="Avatar"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-setdeck-gold"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-setdrift-gold"
                 />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center border border-border">
@@ -87,7 +87,7 @@ export default function SettingsPage() {
             </div>
             <button
               onClick={() => signIn('spotify')}
-              className="px-4 py-2 rounded-xl bg-setdeck-gold text-black hover:bg-amber-400 font-bold text-xs flex items-center gap-1.5 shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all shrink-0"
+              className="px-4 py-2 rounded-xl bg-setdrift-gold text-black hover:bg-amber-400 font-bold text-xs flex items-center gap-1.5 shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all shrink-0"
             >
               <LogIn className="w-3.5 h-3.5" />
               Connect
@@ -122,7 +122,7 @@ export default function SettingsPage() {
               }}
               className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
                 settings.playlistVisibility === 'private'
-                  ? 'bg-setdeck-gold text-black shadow-sm'
+                  ? 'bg-setdrift-gold text-black shadow-sm'
                   : 'text-muted-foreground hover:text-white'
               }`}
             >
@@ -136,7 +136,7 @@ export default function SettingsPage() {
               }}
               className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
                 settings.playlistVisibility === 'public'
-                  ? 'bg-setdeck-gold text-black shadow-sm'
+                  ? 'bg-setdrift-gold text-black shadow-sm'
                   : 'text-muted-foreground hover:text-white'
               }`}
             >
@@ -152,7 +152,7 @@ export default function SettingsPage() {
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium">Recent Shows Sample Size</p>
-            <span className="text-xs font-bold text-setdeck-gold">{settings.showCount} Shows</span>
+            <span className="text-xs font-bold text-setdrift-gold">{settings.showCount} Shows</span>
           </div>
           <p className="text-xs text-muted-foreground">Number of recent concert setlists analyzed for likelihood weighting</p>
           <div className="grid grid-cols-4 gap-2 mt-1">
@@ -165,7 +165,7 @@ export default function SettingsPage() {
                 }}
                 className={`py-1.5 rounded-xl text-xs font-bold border transition-all ${
                   settings.showCount === count
-                    ? 'bg-setdeck-gold text-black border-setdeck-gold shadow-sm'
+                    ? 'bg-setdrift-gold text-black border-setdrift-gold shadow-sm'
                     : 'bg-black/30 border-border/50 text-muted-foreground hover:text-white hover:border-border'
                 }`}
               >
@@ -190,7 +190,7 @@ export default function SettingsPage() {
               toast.success(next ? 'Tour region filtering enabled' : 'Global setlist analysis enabled');
             }}
             className={`w-12 h-6 rounded-full p-1 transition-colors border ${
-              settings.tourRegionDetection ? 'bg-setdeck-gold border-setdeck-gold' : 'bg-secondary border-border'
+              settings.tourRegionDetection ? 'bg-setdrift-gold border-setdrift-gold' : 'bg-secondary border-border'
             }`}
           >
             <div
@@ -216,7 +216,7 @@ export default function SettingsPage() {
               toast.success(next ? 'Audio previews enabled' : 'Audio previews disabled');
             }}
             className={`w-12 h-6 rounded-full p-1 transition-colors border ${
-              settings.autoPreview ? 'bg-setdeck-gold border-setdeck-gold' : 'bg-secondary border-border'
+              settings.autoPreview ? 'bg-setdrift-gold border-setdrift-gold' : 'bg-secondary border-border'
             }`}
           >
             <div
@@ -278,9 +278,9 @@ export default function SettingsPage() {
         transition={{ delay: 0.3 }}
         className="text-center flex flex-col items-center gap-2 py-4 text-xs text-muted-foreground"
       >
-        <div className="flex items-center gap-2 text-setdeck-gold font-bold tracking-widest uppercase">
+        <div className="flex items-center gap-2 text-setdrift-gold font-bold tracking-widest uppercase">
           <Radio className="w-4 h-4" />
-          SetDeck v1.2.0
+          SetDrift v1.2.0
         </div>
         <p className="max-w-xs">
           Built with live data from <span className="text-white font-medium">Setlist.fm</span> and powered by the <span className="text-white font-medium">Spotify Web API</span>.
