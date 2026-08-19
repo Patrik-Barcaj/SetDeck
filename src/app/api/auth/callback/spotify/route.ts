@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
 
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-  const redirectUri = process.env.REDIRECT_URI || 'http://127.0.0.1:3000/api/auth/callback/spotify';
+  const redirectUri = process.env.REDIRECT_URI || `${origin}/api/auth/callback/spotify`;
+
 
   try {
     const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
