@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { AggregatedTrack, SetlistData } from '@/types';
+import { saveOfflineSetlist } from '@/utils/offlineStorage';
 
 interface SetlistStore {
   data: SetlistData | null;
@@ -16,16 +17,27 @@ interface SetlistStore {
 export const useSetlistStore = create<SetlistStore>((set) => ({
   data: null,
   tracks: [],
-  setData: (data) => set({ data, tracks: data.tracks }),
+  setData: (data) => {
+    saveOfflineSetlist(data);
+    set({ data, tracks: data.tracks });
+  },
   addTrack: (track) => 
     set((state) => {
       if (state.tracks.find(t => t.id === track.id)) return state;
-      return { tracks: [...state.tracks, track] };
+      const updatedTracks = [...state.tracks, track];
+      if (state.data) {
+        saveOfflineSetlist({ ...state.data, tracks: updatedTracks });
+      }
+      return { tracks: updatedTracks };
     }),
   removeTrack: (id) =>
-    set((state) => ({
-      tracks: state.tracks.filter((t) => t.id !== id),
-    })),
+    set((state) => {
+      const updatedTracks = state.tracks.filter((t) => t.id !== id);
+      if (state.data) {
+        saveOfflineSetlist({ ...state.data, tracks: updatedTracks });
+      }
+      return { tracks: updatedTracks };
+    }),
   reorderTracks: (activeId, overId) =>
     set((state) => {
       const oldIndex = state.tracks.findIndex((t) => t.id === activeId);
@@ -36,21 +48,37 @@ export const useSetlistStore = create<SetlistStore>((set) => ({
       const [movedItem] = newTracks.splice(oldIndex, 1);
       newTracks.splice(newIndex, 0, movedItem);
 
+      if (state.data) {
+        saveOfflineSetlist({ ...state.data, tracks: newTracks });
+      }
+
       return { tracks: newTracks };
     }),
   toggleExclude: (id) =>
-    set((state) => ({
-      tracks: state.tracks.map((t) =>
+    set((state) => {
+      const updatedTracks = state.tracks.map((t) =>
         t.id === id ? { ...t, excluded: !t.excluded } : t
-      ),
-    })),
+      );
+      if (state.data) {
+        saveOfflineSetlist({ ...state.data, tracks: updatedTracks });
+      }
+      return { tracks: updatedTracks };
+    }),
   toggleShuffle: () =>
     set((state) => {
       const shuffled = [...state.tracks].sort(() => Math.random() - 0.5);
+      if (state.data) {
+        saveOfflineSetlist({ ...state.data, tracks: shuffled });
+      }
       return { tracks: shuffled };
     }),
   reset: () =>
-    set((state) => ({
-      tracks: state.data ? [...state.data.tracks] : [],
-    })),
+    set((state) => {
+      const originalTracks = state.data ? [...state.data.tracks] : [];
+      if (state.data) {
+        saveOfflineSetlist({ ...state.data, tracks: originalTracks });
+      }
+      return { tracks: originalTracks };
+    }),
 }));
+

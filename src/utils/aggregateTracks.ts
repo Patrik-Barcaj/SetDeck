@@ -2,9 +2,23 @@ import { AggregatedTrack, LikelihoodBadge, SetlistShow, SetlistTrack } from '../
 import { sanitizeTrackName } from './sanitizeTrackName';
 
 function getBadge(percentage: number): LikelihoodBadge {
-  if (percentage >= 80) return 'Green';
-  if (percentage >= 40) return 'Yellow';
+  if (percentage >= 90) return 'Green';
+  if (percentage >= 50) return 'Yellow';
   return 'Red';
+}
+
+function getSectionName(set: { name?: string; encore?: number }): string {
+  if (set.encore) {
+    return set.encore === 1 ? 'Encore 1' : set.encore === 2 ? 'Encore 2' : `Encore ${set.encore}`;
+  }
+  if (set.name && set.name.trim()) {
+    const trimmed = set.name.trim();
+    if (/^encore\s*1$/i.test(trimmed)) return 'Encore 1';
+    if (/^encore\s*2$/i.test(trimmed)) return 'Encore 2';
+    if (/^main\s*set$/i.test(trimmed)) return 'Main Set';
+    return trimmed;
+  }
+  return 'Main Set';
 }
 
 function normalizeKey(name: string): string {
@@ -30,6 +44,8 @@ export function aggregateTracks(shows: SetlistShow[]): AggregatedTrack[] {
     let globalOrder = 0;
     
     show.sets.set.forEach((set) => {
+      const sectionName = getSectionName(set);
+
       set.song.forEach((song) => {
         globalOrder++;
         if (!song.name) return; // Skip tape/interludes if no name
@@ -50,6 +66,7 @@ export function aggregateTracks(shows: SetlistShow[]): AggregatedTrack[] {
                 info: song.info,
                 cover: song.cover,
                 originalOrder: globalOrder,
+                section: sectionName,
               }
             });
           }
@@ -71,6 +88,7 @@ export function aggregateTracks(shows: SetlistShow[]): AggregatedTrack[] {
       isCover: !!track.cover,
       coverArtist: track.cover?.name,
       originalOrder: track.originalOrder, // Use the order from the first time it was seen (most recent show)
+      section: track.section || 'Main Set',
     };
   });
 
@@ -81,3 +99,4 @@ export function aggregateTracks(shows: SetlistShow[]): AggregatedTrack[] {
 
   return aggregated;
 }
+

@@ -18,7 +18,13 @@ export function ActionBar() {
 
   const [isExporting, setIsExporting] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
-  const [successData, setSuccessData] = useState<{ url: string; imageUrl?: string } | null>(null);
+  const [successData, setSuccessData] = useState<{
+    url: string;
+    imageUrl?: string;
+    id?: string;
+    name?: string;
+    tracksCount?: number;
+  } | null>(null);
 
   useEffect(() => {
     if (settings?.playlistVisibility) {
@@ -78,6 +84,9 @@ export function ActionBar() {
       setSuccessData({
         url: resData.url,
         imageUrl: resData.imageUrl,
+        id: resData.id,
+        name: resData.name,
+        tracksCount: resData.tracksCount || activeTracks.length,
       });
 
       toast.success('Playlist successfully created on Spotify!', {
@@ -133,11 +142,15 @@ export function ActionBar() {
       
       {successData && (
         <SuccessModal 
-          url={successData.url} 
+          url={successData.url}
+          playlistId={successData.id}
+          playlistName={successData.name}
+          tracksCount={successData.tracksCount}
           imageUrl={successData.imageUrl} 
           onClose={() => setSuccessData(null)} 
         />
       )}
     </>
   );
+
 }

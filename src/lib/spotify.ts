@@ -134,14 +134,17 @@ export async function searchSpotifyTrack(
 
   const effectiveToken = token;
 
-  // Build prioritized list of search queries
+  // Build prioritized list of search queries: strict first, then fallback
   const queries: string[] = [];
   if (validArtist) {
+    queries.push(`track:"${cleanTrack}" artist:"${validArtist}"`);
     queries.push(`${validArtist} ${cleanTrack}`);
-    queries.push(`artist:${validArtist} track:${cleanTrack}`);
+  } else {
+    queries.push(`track:"${cleanTrack}"`);
   }
   queries.push(`track:${cleanTrack}`);
   queries.push(cleanTrack);
+
 
   let rateLimitedFully = false;
 

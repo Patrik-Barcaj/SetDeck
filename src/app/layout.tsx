@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
@@ -16,8 +16,12 @@ export const metadata: Metadata = {
     { rel: 'icon', url: '/logo.svg', type: 'image/svg+xml' },
     { rel: 'apple-touch-icon', url: '/icon-192.svg' },
   ],
+};
+
+export const viewport: Viewport = {
   themeColor: '#0D0E12',
 };
+
 
 export default function RootLayout({
   children,

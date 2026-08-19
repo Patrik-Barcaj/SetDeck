@@ -147,6 +147,47 @@ describe('Spotify API Client Library', () => {
       expect(track?.uri).toBe('spotify:track:trk2');
     });
 
+    it('falls back to broad search when strict track and artist query returns empty', async () => {
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ tracks: { items: [] } }),
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            tracks: {
+              items: [
+                {
+                  id: 'trk_fallback',
+                  name: 'Fade to Black',
+                  uri: 'spotify:track:trk_fallback',
+                  duration_ms: 420000,
+                  preview_url: null,
+                  artists: [{ id: 'art1', name: 'Metallica' }],
+                },
+              ],
+            },
+          }),
+        } as Response);
+
+      const track = await searchSpotifyTrack('Metallica', 'Fade to Black', 'token_123');
+      expect(track).not.toBeNull();
+      expect(track?.name).toBe('Fade to Black');
+      expect(track?.uri).toBe('spotify:track:trk_fallback');
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(global.fetch).toHaveBeenNthCalledWith(
+        1,
+        expect.stringContaining('track%3A%22Fade%20to%20Black%22%20artist%3A%22Metallica%22'),
+        expect.anything()
+      );
+      expect(global.fetch).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining('Metallica%20Fade%20to%20Black'),
+        expect.anything()
+      );
+    });
+
     it('returns null if no track found across query variations', async () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -157,6 +198,7 @@ describe('Spotify API Client Library', () => {
       expect(track).toBeNull();
     });
   });
+
 
   describe('normalizeSpotifyTrackUri', () => {
     it('normalizes standard spotify:track: URIs', () => {

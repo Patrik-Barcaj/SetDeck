@@ -1,12 +1,12 @@
 'use client';
 
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { AggregatedTrack } from '@/types';
 import { LikelihoodBadge } from '../shared/LikelihoodBadge';
-import { Minus, Plus, Trash2, Play, Square } from 'lucide-react';
+import { Minus, Plus, Trash2, Play, Pause } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
-import { useState, useRef } from 'react';
 
 interface TrackCardProps {
   track: AggregatedTrack;
@@ -24,6 +24,13 @@ export function TrackCard({ track, onRemove, onToggleExclude }: TrackCardProps) 
     isDragging,
   } = useSortable({ id: track.id });
 
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const x = useMotionValue(0);
+  const bgOpacity = useTransform(x, [-80, -20, 0], [1, 0, 0]);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -31,30 +38,58 @@ export function TrackCard({ track, onRemove, onToggleExclude }: TrackCardProps) 
     opacity: isDragging ? 0.9 : 1,
   };
 
-  const x = useMotionValue(0);
-  // Fade background to red slightly when swiping
-  const bgOpacity = useTransform(x, [-80, -20, 0], [1, 0, 0]);
-
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const togglePlay = (e: React.MouseEvent) => {
+  const togglePlay = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    if (audioRef.current) {
-      if (isPlaying) {
+    if (!audioRef.current || !track.previewUrl) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      // Broadcast event so any other playing audio stops immediately
+      window.dispatchEvent(new CustomEvent('setdrift-audio-play', { detail: { id: track.id } }));
+      audioRef.current.play().catch((err) => {
+        console.warn('Audio play error:', err);
+        setIsPlaying(false);
+      });
+      setIsPlaying(true);
+    }
+  }, [isPlaying, track.id, track.previewUrl]);
+
+  useEffect(() => {
+    const handleOtherPlay = (event: Event) => {
+      const customEvent = event as CustomEvent<{ id: string }>;
+      if (customEvent.detail?.id !== track.id && audioRef.current && isPlaying) {
         audioRef.current.pause();
-      } else {
-        // Find other audio elements and pause them
-        document.querySelectorAll('audio').forEach((el) => {
-          if (el !== audioRef.current) el.pause();
-        });
-        audioRef.current.play();
+        setIsPlaying(false);
       }
-      setIsPlaying(!isPlaying);
+    };
+
+    window.addEventListener('setdrift-audio-play', handleOtherPlay);
+    return () => {
+      window.removeEventListener('setdrift-audio-play', handleOtherPlay);
+    };
+  }, [track.id, isPlaying]);
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      const current = audioRef.current.currentTime;
+      const duration = audioRef.current.duration || 30;
+      setProgress(Math.min((current / duration) * 100, 100));
     }
   };
 
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setProgress(0);
+  };
+
   const isExcluded = track.excluded ?? false;
+
+  // SVG circle calculations for 28px diameter ring (radius 12, stroke 2)
+  const radius = 12;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
     <div
@@ -126,19 +161,55 @@ export function TrackCard({ track, onRemove, onToggleExclude }: TrackCardProps) 
             <button
               onClick={togglePlay}
               onPointerDown={(e) => e.stopPropagation()} // Prevent drag conflict
-              className="w-7 h-7 flex items-center justify-center rounded-full bg-setdrift-gold text-black hover:scale-110 active:scale-95 transition-transform"
+              className="relative w-8 h-8 flex items-center justify-center rounded-full bg-secondary/80 hover:bg-secondary text-setdrift-gold transition-all hover:scale-105 active:scale-95 group"
+              title={isPlaying ? 'Pause Preview' : 'Play 30s Preview'}
+              aria-label={isPlaying ? 'Pause Preview' : 'Play 30s Preview'}
             >
-              {isPlaying ? <Square className="w-3 h-3 fill-black" /> : <Play className="w-3.5 h-3.5 fill-black ml-0.5" />}
+              {/* Circular Progress Ring */}
+              <svg className="absolute inset-0 w-8 h-8 -rotate-90 pointer-events-none" viewBox="0 0 28 28">
+                {/* Background track circle */}
+                <circle
+                  cx="14"
+                  cy="14"
+                  r={radius}
+                  className="stroke-zinc-700/40"
+                  strokeWidth="2"
+                  fill="transparent"
+                />
+                {/* Active animated progress circle */}
+                {isPlaying && (
+                  <circle
+                    cx="14"
+                    cy="14"
+                    r={radius}
+                    className="stroke-setdrift-gold transition-all duration-150 ease-linear"
+                    strokeWidth="2.5"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round"
+                    fill="transparent"
+                  />
+                )}
+              </svg>
+
+              {/* Icon */}
+              {isPlaying ? (
+                <Pause className="w-3.5 h-3.5 fill-setdrift-gold text-setdrift-gold" />
+              ) : (
+                <Play className="w-3.5 h-3.5 fill-setdrift-gold text-setdrift-gold ml-0.5" />
+              )}
             </button>
           )}
+
           {!isExcluded && <LikelihoodBadge type={track.badge} likelihood={track.likelihood} />}
         </div>
         
         {track.previewUrl && (
           <audio 
             ref={audioRef} 
-            src={track.previewUrl} 
-            onEnded={() => setIsPlaying(false)}
+            src={track.previewUrl}
+            onTimeUpdate={handleTimeUpdate}
+            onEnded={handleEnded}
             onPause={() => setIsPlaying(false)}
             onPlay={() => setIsPlaying(true)}
           />
@@ -147,4 +218,5 @@ export function TrackCard({ track, onRemove, onToggleExclude }: TrackCardProps) 
     </div>
   );
 }
+
 

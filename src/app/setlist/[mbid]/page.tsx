@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useSetlistStore } from '@/hooks/useSetlistStore';
+import { getOfflineSetlist } from '@/utils/offlineStorage';
 import { SetlistHeader } from '@/components/setlist/SetlistHeader';
 import { TrackList } from '@/components/setlist/TrackList';
 import { ActionBar } from '@/components/setlist/ActionBar';
 import { TrackSkeleton } from '@/components/shared/TrackSkeleton';
+import { WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SetlistStudio() {
@@ -15,14 +17,26 @@ export default function SetlistStudio() {
   const mbid = params.mbid as string;
   const artistNameParam = searchParams.get('artistName') || searchParams.get('artist') || '';
   const { setData } = useSetlistStore();
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
 
   useEffect(() => {
     async function loadSetlist() {
       if (!mbid) return;
-      setIsLoading(true);
+
+      // Check offline cache first for instant responsiveness
+      const offlineCached = getOfflineSetlist(mbid);
+      if (offlineCached) {
+        setData(offlineCached);
+        setIsLoading(false);
+      } else {
+        setIsLoading(true);
+      }
+
       setError(null);
+
       try {
         const query = artistNameParam ? `?artistName=${encodeURIComponent(artistNameParam)}` : '';
         const res = await fetch(`/api/setlist/${mbid}${query}`);
@@ -32,10 +46,18 @@ export default function SetlistStudio() {
         }
         const data = await res.json();
         setData(data);
+        setIsOfflineMode(false);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Unknown error';
-        setError(message);
-        toast.error(message);
+        if (offlineCached) {
+          setIsOfflineMode(true);
+          toast.info('Using offline cached setlist', {
+            icon: <WifiOff className="w-4 h-4 text-amber-400" />,
+          });
+        } else {
+          setError(message);
+          toast.error(message);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -58,6 +80,7 @@ export default function SetlistStudio() {
     );
   }
 
+
   return (
     <div className="min-h-screen bg-background relative">
       {isLoading ? (
@@ -69,6 +92,17 @@ export default function SetlistStudio() {
         </div>
       ) : (
         <>
+          {isOfflineMode && (
+            <div className="w-full max-w-4xl mx-auto px-6 pt-3">
+              <div className="bg-amber-950/40 border border-amber-500/30 rounded-2xl px-4 py-2 flex items-center justify-between text-amber-300 text-xs">
+                <div className="flex items-center gap-2">
+                  <WifiOff className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Offline Mode • Viewing locally saved warm-up setlist</span>
+                </div>
+                <span className="text-[10px] bg-amber-500/20 px-2 py-0.5 rounded-full font-bold">Offline</span>
+              </div>
+            </div>
+          )}
           <SetlistHeader />
           <TrackList />
           <ActionBar />
@@ -77,3 +111,4 @@ export default function SetlistStudio() {
     </div>
   );
 }
+

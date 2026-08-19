@@ -13,6 +13,7 @@ export interface SetlistTrack {
   info?: string;
   cover?: { mbid: string; name: string };
   originalOrder: number;
+  section?: string;
 }
 
 export interface SetlistShow {
@@ -50,11 +51,13 @@ export interface AggregatedTrack {
   isCover: boolean;
   coverArtist?: string;
   originalOrder: number; // Used to maintain logical flow
+  section?: string; // e.g. "Main Set", "Encore 1", "Encore 2"
   previewUrl?: string | null;
   durationMs?: number;
   spotifyUri?: string;
   excluded?: boolean;
 }
+
 
 export interface SetlistData {
   mbid: string;

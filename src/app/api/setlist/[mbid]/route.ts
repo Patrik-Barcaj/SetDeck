@@ -23,6 +23,16 @@ export async function GET(
 
   const cacheKey = `setlist:artist:${mbid}:last10`;
 
+  // Check 12-hour Redis cache upfront
+  try {
+    const cached = await redis.get<SetlistData>(cacheKey);
+    if (cached && cached.tracks && cached.tracks.length > 0) {
+      return NextResponse.json(cached);
+    }
+  } catch (cacheErr) {
+    console.warn('Redis cache lookup error:', cacheErr);
+  }
+
   try {
     const { shows, artistName } = await fetchLast10Shows(mbid);
     
@@ -87,8 +97,12 @@ export async function GET(
       totalValidShows: shows.length,
     };
 
-    // Cache for 24 hours
-    await redis.set(cacheKey, data, { ex: 86400 });
+    // Cache in Upstash Redis for 12 hours (43200s)
+    try {
+      await redis.set(cacheKey, data, { ex: 43200 });
+    } catch (redisWriteErr) {
+      console.warn('Redis cache write error:', redisWriteErr);
+    }
 
     return NextResponse.json(data);
   } catch (error: unknown) {
@@ -96,15 +110,18 @@ export async function GET(
     
     const errMessage = error instanceof Error ? error.message : String(error);
 
-    // Graceful degradation on 429/503
+    // Graceful degradation on 429/503: try cache fallback
     if (errMessage.includes('429') || errMessage.includes('503') || errMessage.includes('fetch failed')) {
-      const cached = await redis.get<SetlistData>(cacheKey);
-      if (cached) {
-        return NextResponse.json(cached);
-      }
+      try {
+        const cached = await redis.get<SetlistData>(cacheKey);
+        if (cached) {
+          return NextResponse.json(cached);
+        }
+      } catch {}
       return NextResponse.json({ error: 'Setlist.fm is currently rate-limiting requests. Please try again in a few minutes.' }, { status: 429 });
     }
 
     return NextResponse.json({ error: 'Failed to aggregate setlist data', details: errMessage }, { status: 500 });
   }
 }
+
