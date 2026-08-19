@@ -4,7 +4,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const returnTo = searchParams.get('returnTo') || '/';
 
-  const host = request.headers.get('host') || '127.0.0.1:3000';
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '127.0.0.1:3000';
   const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
   const normalizedHost = isLocal ? host.replace('localhost', '127.0.0.1') : host;
   const proto = request.headers.get('x-forwarded-proto') || (isLocal ? 'http' : 'https');
