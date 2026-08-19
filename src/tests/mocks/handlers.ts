@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw';
 import metallicaData from './fixtures/metallica_10_shows.json';
 
 export const handlers = [
-  http.get('https://api.setlist.fm/rest/1.0/artist/:mbid/setlists', ({ params }) => {
+  http.get('https://api.setlist.fm/rest/1.0/artist/:mbid/setlists', () => {
     return HttpResponse.json(metallicaData);
   }),
 

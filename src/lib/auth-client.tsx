@@ -70,6 +70,6 @@ export function signIn(provider?: string, returnTo?: string) {
   window.location.href = `/api/auth/login?returnTo=${encodeURIComponent(currentPath)}`;
 }
 
-export async function signOut(options?: { callbackUrl?: string }) {
+export async function signOut(_options?: { callbackUrl?: string }) {
   window.location.href = '/api/auth/signout';
 }

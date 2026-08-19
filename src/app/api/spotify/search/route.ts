@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { searchSpotifyTrack, getClientCredentialsToken } from '@/lib/spotify';
+import { getClientCredentialsToken } from '@/lib/spotify';
 import { getCatalogTrack } from '@/lib/trackCatalog';
 import { auth } from '@/lib/auth';
 
