@@ -30,6 +30,20 @@ export function SuccessModal({
   const appDeepLink = extractedId ? `spotify:playlist:${extractedId}` : url;
 
   const copyLink = async () => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: playlistName || 'Live Warm-Up Setlist',
+          text: `Check out my live warm-up setlist on Spotify: ${playlistName}`,
+          url,
+        });
+        toast.success('Shared successfully!');
+        return;
+      } catch {
+        // Fall back to clipboard if user dismissed or share failed
+      }
+    }
+
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);

@@ -1,12 +1,42 @@
 import { SetlistData } from '@/types';
 
 const OFFLINE_SETLISTS_KEY = 'setdrift_offline_setlists';
-const OFFLINE_MAX_SETLISTS = 25;
+const OFFLINE_MAX_SETLISTS = 30;
+const DB_NAME = 'setdrift_db';
+const DB_VERSION = 1;
+const STORE_NAME = 'setlists';
 
 export interface StoredOfflineSetlist {
   mbid: string;
   data: SetlistData;
   savedAt: number;
+}
+
+function openDB(): Promise<IDBDatabase | null> {
+  if (typeof window === 'undefined' || !('indexedDB' in window)) {
+    return Promise.resolve(null);
+  }
+
+  return new Promise((resolve) => {
+    try {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'mbid' });
+        }
+      };
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => {
+        console.warn('IndexedDB open error:', request.error);
+        resolve(null);
+      };
+    } catch {
+      resolve(null);
+    }
+  });
 }
 
 export function getOfflineSetlist(mbid: string): SetlistData | null {
@@ -23,17 +53,42 @@ export function getOfflineSetlist(mbid: string): SetlistData | null {
   return null;
 }
 
+export async function getOfflineSetlistAsync(mbid: string): Promise<SetlistData | null> {
+  const local = getOfflineSetlist(mbid);
+  if (local) return local;
+
+  const db = await openDB();
+  if (!db) return null;
+
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.get(mbid);
+
+      req.onsuccess = () => {
+        const result = req.result as StoredOfflineSetlist | undefined;
+        resolve(result?.data || null);
+      };
+      req.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
 export function saveOfflineSetlist(data: SetlistData): void {
   if (typeof window === 'undefined' || !data || !data.mbid) return;
-  try {
-    const entry: StoredOfflineSetlist = {
-      mbid: data.mbid,
-      data,
-      savedAt: Date.now(),
-    };
-    localStorage.setItem(`${OFFLINE_SETLISTS_KEY}_${data.mbid}`, JSON.stringify(entry));
+  
+  const entry: StoredOfflineSetlist = {
+    mbid: data.mbid,
+    data,
+    savedAt: Date.now(),
+  };
 
-    // Update index of saved mbid keys
+  // Sync to localStorage
+  try {
+    localStorage.setItem(`${OFFLINE_SETLISTS_KEY}_${data.mbid}`, JSON.stringify(entry));
     const indexRaw = localStorage.getItem(OFFLINE_SETLISTS_KEY);
     const indexList: string[] = indexRaw ? JSON.parse(indexRaw) : [];
     const updatedIndex = [data.mbid, ...indexList.filter((id) => id !== data.mbid)].slice(0, OFFLINE_MAX_SETLISTS);
@@ -41,6 +96,18 @@ export function saveOfflineSetlist(data: SetlistData): void {
   } catch (e) {
     console.warn('Failed to save offline setlist to localStorage:', e);
   }
+
+  // Persist to IndexedDB asynchronously
+  openDB().then((db) => {
+    if (!db) return;
+    try {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.put(entry);
+    } catch (e) {
+      console.warn('Failed to save setlist to IndexedDB:', e);
+    }
+  });
 }
 
 export function getAllOfflineSetlists(): SetlistData[] {
@@ -71,4 +138,14 @@ export function removeOfflineSetlist(mbid: string): void {
   } catch (e) {
     console.warn('Failed to remove offline setlist from localStorage:', e);
   }
+
+  openDB().then((db) => {
+    if (!db) return;
+    try {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.delete(mbid);
+    } catch {}
+  });
 }
+

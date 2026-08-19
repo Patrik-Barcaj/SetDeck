@@ -146,14 +146,45 @@ export function TrackCard({ track, onRemove, onToggleExclude }: TrackCardProps) 
         </button>
 
         <div className="flex-1 overflow-hidden">
-          <h4 className={`text-base font-bold truncate pr-2 transition-all ${
-            isExcluded ? 'line-through text-muted-foreground decoration-2' : ''
-          }`}>{track.name}</h4>
-          {track.isCover && (
-            <p className="text-xs text-muted-foreground truncate">
-              Cover: {track.coverArtist}
-            </p>
-          )}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <h4 className={`text-base font-bold truncate pr-2 transition-all ${
+              isExcluded ? 'line-through text-muted-foreground decoration-2' : ''
+            }`}>{track.name}</h4>
+
+            {track.isOpener && !isExcluded && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
+                ⚡ Opener
+              </span>
+            )}
+            {track.isCloser && !isExcluded && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase tracking-wider">
+                ★ Closer
+              </span>
+            )}
+            {track.tourEvolution && !isExcluded && !track.isOpener && !track.isCloser && (
+              <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${
+                track.tourEvolution === 'NEW TO TOUR'
+                  ? 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30'
+                  : track.tourEvolution === 'TOUR STAPLE'
+                  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                  : 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30'
+              }`}>
+                {track.tourEvolution === 'NEW TO TOUR' ? 'New' : track.tourEvolution === 'TOUR STAPLE' ? 'Staple' : 'Rotating'}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-muted-foreground truncate mt-0.5">
+            {track.isCover && (
+              <span>Cover: {track.coverArtist}</span>
+            )}
+            {track.albumName && (
+              <span className="truncate">
+                {track.albumName}
+                {track.releaseYear ? ` (${track.releaseYear})` : ''}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center flex-shrink-0 gap-2">

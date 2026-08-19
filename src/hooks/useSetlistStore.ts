@@ -5,7 +5,9 @@ import { saveOfflineSetlist } from '@/utils/offlineStorage';
 interface SetlistStore {
   data: SetlistData | null;
   tracks: AggregatedTrack[];
+  mode: 'headline' | 'festival';
   setData: (data: SetlistData) => void;
+  setMode: (mode: 'headline' | 'festival') => void;
   addTrack: (track: AggregatedTrack) => void;
   removeTrack: (id: string) => void;
   reorderTracks: (activeId: string, overId: string) => void;
@@ -17,10 +19,30 @@ interface SetlistStore {
 export const useSetlistStore = create<SetlistStore>((set) => ({
   data: null,
   tracks: [],
+  mode: 'headline',
   setData: (data) => {
     saveOfflineSetlist(data);
-    set({ data, tracks: data.tracks });
+    set({ data, tracks: data.tracks, mode: data.mode || 'headline' });
   },
+  setMode: (mode) =>
+    set((state) => {
+      if (!state.data) return { mode };
+      if (mode === 'festival') {
+        const targetCount = 11;
+        const mandatoryTracks = state.data.tracks.filter((t) => t.isOpener || t.isCloser || t.likelihood >= 85);
+        const remainingSlots = Math.max(0, targetCount - mandatoryTracks.length);
+        const otherTracks = state.data.tracks
+          .filter((t) => !mandatoryTracks.some((m) => m.id === t.id))
+          .sort((a, b) => b.likelihood - a.likelihood)
+          .slice(0, remainingSlots);
+
+        const festivalSubset = [...mandatoryTracks, ...otherTracks];
+        const condensed = state.data.tracks.filter((t) => festivalSubset.some((f) => f.id === t.id));
+        return { mode, tracks: condensed };
+      } else {
+        return { mode, tracks: state.data.tracks };
+      }
+    }),
   addTrack: (track) => 
     set((state) => {
       if (state.tracks.find(t => t.id === track.id)) return state;

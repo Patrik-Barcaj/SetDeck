@@ -5,21 +5,23 @@ export function sanitizeTrackName(name: string): string {
   // e.g. "Song (feat. Artist)" or "Song feat. Artist" or "Song ft. Artist" or "Song (with Artist)"
   let sanitized = name.replace(/\s*(?:\[|\()?\s*(?:feat\.?|ft\.?|featuring|with)\s+[^()\]]+(?:\)|\])?/gi, '');
 
-  // Strip standard setlist tags & parentheses/brackets content
-  // e.g. "(Snippet)", "(Acoustic)", "(Live)", "(Tape intro)", "(Intro)", "(Outro)", "(Demo)", "(Interlude)", "(Reprise)"
-  sanitized = sanitized.replace(/[\(\[].*?[\)\]]/g, '');
+  // Strip common suffixes with dashes or colons first (e.g. "Let It Be - Live (1970)")
+  sanitized = sanitized.replace(/\s*-\s*Live(\s+(?:at|from|in|\(\d+\)).*?)?$/gi, '');
+  sanitized = sanitized.replace(/\s*-\s*Live\b.*$/gi, '');
+  sanitized = sanitized.replace(/\s*-\s*.*?Remaster.*?$/gi, '');
+  sanitized = sanitized.replace(/\s*-\s*Cover.*?$/gi, '');
+  sanitized = sanitized.replace(/\s*-\s*Acoustic.*?$/gi, '');
+  sanitized = sanitized.replace(/\s*-\s*Single(\s+Version)?$/gi, '');
+  sanitized = sanitized.replace(/\s*-\s*Radio(\s+Edit)?$/gi, '');
+  sanitized = sanitized.replace(/\s*-\s*Tape(\s+Intro|\s+Outro)?$/gi, '');
+  sanitized = sanitized.replace(/\s*-\s*Snippet$/gi, '');
 
-  // Strip common suffixes with dashes or colons
-  sanitized = sanitized.replace(/-\s*Live(\s+at.*)?/gi, '');
-  sanitized = sanitized.replace(/-\s*.*?Remaster.*/gi, '');
-  sanitized = sanitized.replace(/-\s*Cover.*/gi, '');
-  sanitized = sanitized.replace(/-\s*Acoustic.*/gi, '');
-  sanitized = sanitized.replace(/-\s*Single(\s+Version)?/gi, '');
-  sanitized = sanitized.replace(/-\s*Radio(\s+Edit)?/gi, '');
-  sanitized = sanitized.replace(/-\s*Tape(\s+Intro)?/gi, '');
+  // Strip standard setlist/parentheses/brackets content
+  sanitized = sanitized.replace(/\s*[\(\[][^()\]]*[\)\]]/g, '');
 
-  // Clean remaining stray punctuation and extra whitespace
-  sanitized = sanitized.replace(/\s+/g, ' ').replace(/^["']|["']$/g, '').trim();
+  // Strip any lingering double quotes, single quotes, stray hyphens or punctuation
+  sanitized = sanitized.replace(/^[-–—:\s"']+|[-–—:\s"']+$/g, '');
+  sanitized = sanitized.replace(/\s+/g, ' ').trim();
 
   return sanitized || name.trim();
 }

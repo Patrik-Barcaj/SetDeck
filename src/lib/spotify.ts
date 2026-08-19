@@ -24,6 +24,7 @@ export interface SpotifyTrack {
   album?: {
     name: string;
     images: Array<{ url: string }>;
+    release_date?: string;
   };
 }
 

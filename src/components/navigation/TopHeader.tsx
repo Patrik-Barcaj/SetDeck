@@ -12,7 +12,19 @@ export function TopHeader() {
   const router = useRouter();
 
   const isHome = pathname === '/';
-  const title = isHome ? '' : pathname.startsWith('/setlist/') ? 'Setlist Studio' : pathname === '/saved' ? 'Saved Setlists' : pathname === '/settings' ? 'Settings' : 'SetDrift';
+  const title = isHome
+    ? ''
+    : pathname.startsWith('/setlist/')
+    ? 'Setlist Studio'
+    : pathname === '/festival'
+    ? 'Festival Merge'
+    : pathname === '/radar'
+    ? 'Concerts Radar'
+    : pathname === '/saved'
+    ? 'Saved Setlists'
+    : pathname === '/settings'
+    ? 'Settings'
+    : 'SetDrift';
 
   return (
     <div className="fixed top-0 left-0 right-0 h-14 bg-background/90 backdrop-blur-lg border-b border-border/40 z-50 flex items-center justify-between px-4">

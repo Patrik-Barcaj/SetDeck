@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Library, Settings } from 'lucide-react';
+import { Search, Library, Settings, Tent, Compass } from 'lucide-react';
 
 export function BottomNavigation() {
   const pathname = usePathname();
 
   const navItems = [
     { name: 'Search', href: '/', icon: Search },
+    { name: 'Festival', href: '/festival', icon: Tent },
+    { name: 'Radar', href: '/radar', icon: Compass },
     { name: 'Saved', href: '/saved', icon: Library },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];

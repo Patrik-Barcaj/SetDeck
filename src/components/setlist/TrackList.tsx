@@ -63,15 +63,30 @@ export function TrackList() {
               const prevSection = index > 0 ? (tracks[index - 1].section || 'Main Set') : null;
               const isNewSection = index === 0 || currentSection !== prevSection;
 
+              // Calculate section statistics
+              const sectionTracks = tracks.filter((t) => (t.section || 'Main Set') === currentSection && !t.excluded);
+              const sectionDurationMs = sectionTracks.reduce((acc, t) => acc + (t.durationMs || 210000), 0);
+              const sectionMinutes = Math.round(sectionDurationMs / 60000);
+
+              const isEncore = currentSection.toLowerCase().includes('encore');
+
               return (
                 <div key={track.id}>
                   {isNewSection && (
-                    <div className={`${index === 0 ? 'pt-2' : 'pt-6'} pb-2 flex items-center gap-3 select-none`}>
-                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border/50 to-border/20" />
-                      <span className="px-3 py-0.5 rounded-full text-[11px] font-extrabold tracking-wider uppercase bg-secondary/60 text-setdrift-gold border border-setdrift-gold/30 shadow-[0_0_10px_rgba(244,168,54,0.12)]">
-                        {currentSection}
-                      </span>
-                      <div className="h-px flex-1 bg-gradient-to-l from-transparent via-border/50 to-border/20" />
+                    <div className={`${index === 0 ? 'pt-2' : 'pt-8'} pb-3 flex items-center justify-between select-none`}>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase border shadow-sm ${
+                          isEncore
+                            ? 'bg-purple-950/40 text-purple-300 border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.15)]'
+                            : 'bg-setdrift-gold/15 text-setdrift-gold border-setdrift-gold/30 shadow-[0_0_15px_rgba(244,168,54,0.15)]'
+                        }`}>
+                          {currentSection}
+                        </span>
+                        <span className="text-xs text-muted-foreground font-medium">
+                          {sectionTracks.length} {sectionTracks.length === 1 ? 'track' : 'tracks'} • ~{sectionMinutes} min
+                        </span>
+                      </div>
+                      <div className="h-px flex-1 ml-4 bg-gradient-to-r from-border/50 to-transparent" />
                     </div>
                   )}
                   <motion.div
