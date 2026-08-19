@@ -5,8 +5,10 @@ export async function GET(request: Request) {
   const returnTo = searchParams.get('returnTo') || '/';
 
   const host = request.headers.get('host') || '127.0.0.1:3000';
-  const proto = request.headers.get('x-forwarded-proto') || 'http';
+  const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+  const proto = request.headers.get('x-forwarded-proto') || (isLocal ? 'http' : 'https');
   const origin = `${proto}://${host}`;
+
   
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const redirectUri = process.env.REDIRECT_URI || `${origin}/api/auth/callback/spotify`;

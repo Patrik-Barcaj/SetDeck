@@ -22,8 +22,10 @@ export async function GET(request: NextRequest) {
   }
 
   const host = request.headers.get('host') || '127.0.0.1:3000';
-  const proto = request.headers.get('x-forwarded-proto') || 'http';
+  const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+  const proto = request.headers.get('x-forwarded-proto') || (isLocal ? 'http' : 'https');
   const origin = `${proto}://${host}`;
+
 
   if (error || !code) {
     console.error('Spotify OAuth callback error:', error);
