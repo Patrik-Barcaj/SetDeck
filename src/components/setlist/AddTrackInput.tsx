@@ -64,7 +64,7 @@ export function AddTrackInput() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search to add missing track..."
-          className="w-full bg-secondary/50 border border-border/50 text-sm rounded-full pl-10 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-setdrift-gold transition-shadow placeholder:text-muted-foreground"
+          className="w-full bg-zinc-900/90 border border-zinc-700/80 text-sm rounded-full pl-10 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-setdrift-gold transition-shadow placeholder:text-zinc-400 text-white shadow-inner"
         />
         <button
           type="submit"

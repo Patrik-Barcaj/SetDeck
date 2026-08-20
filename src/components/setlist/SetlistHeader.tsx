@@ -19,7 +19,7 @@ export function SetlistHeader() {
   const activeTracksCount = tracks.filter((t) => !t.excluded).length;
 
   return (
-    <div className="sticky top-14 z-40 w-full bg-background/95 backdrop-blur-md border-b border-border/40 py-3 px-4 mb-4 flex flex-col gap-3 shadow-sm">
+    <div className="w-full max-w-4xl mx-auto px-4 md:px-6 pt-4 pb-2 mb-2 flex flex-col gap-3">
       
       {/* Stats Bar */}
       <div className="flex items-center justify-between text-xs text-muted-foreground font-medium flex-wrap gap-1.5">

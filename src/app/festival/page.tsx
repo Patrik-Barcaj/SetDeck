@@ -27,7 +27,7 @@ export default function FestivalPage() {
   const [festivalName, setFestivalName] = useState('Summer Festival 2026 Warm-Up');
   const [slots, setSlots] = useState<FestivalArtistSlot[]>([
     {
-      artistMbid: '65f4f0c5-ef9e-490c-aee3-909e7f6b2e4f',
+      artistMbid: '65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab',
       artistName: 'Metallica',
       stageName: 'Main Stage',
       startTime: '21:30',
@@ -70,7 +70,7 @@ export default function FestivalPage() {
       const res = await fetch(`/api/setlist/search?q=${encodeURIComponent(q)}`);
       if (res.ok) {
         const data = await res.json();
-        setSearchResults(data.artists || []);
+        setSearchResults(Array.isArray(data) ? data : data.artists || []);
         setShowDropdown(true);
       }
     } catch {
@@ -237,7 +237,7 @@ export default function FestivalPage() {
               value={festivalName}
               onChange={(e) => setFestivalName(e.target.value)}
               placeholder="e.g. Glastonbury 2026 Warm-Up"
-              className="w-full bg-secondary/80 border border-border/60 rounded-xl px-4 py-2.5 text-sm font-semibold text-white focus:outline-none focus:border-setdrift-gold"
+              className="w-full bg-zinc-900/90 border border-zinc-700/80 rounded-xl px-4 py-2.5 text-sm font-semibold text-white focus:outline-none focus:border-setdrift-gold placeholder:text-zinc-500 shadow-inner"
             />
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground font-semibold pt-2 md:pt-6">
@@ -264,7 +264,7 @@ export default function FestivalPage() {
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search artist name (e.g. Metallica, Arctic Monkeys, Dua Lipa)..."
-            className="w-full bg-secondary/60 border border-border/60 rounded-2xl pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-setdrift-gold shadow-inner"
+            className="w-full bg-zinc-900/90 border border-zinc-700/80 rounded-2xl pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-zinc-400 focus:outline-none focus:border-setdrift-gold shadow-inner"
           />
           <Search className="w-5 h-5 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
           {isSearching && (
@@ -298,7 +298,7 @@ export default function FestivalPage() {
                     <span className="text-sm font-bold text-white block group-hover:text-setdrift-gold transition-colors">
                       {artist.name}
                     </span>
-                    {artist.genres?.length > 0 && (
+                    {artist.genres && artist.genres.length > 0 && (
                       <span className="text-[10px] text-muted-foreground capitalize">
                         {artist.genres.slice(0, 2).join(' • ')}
                       </span>
@@ -365,7 +365,7 @@ export default function FestivalPage() {
                   value={slot.stageName || ''}
                   onChange={(e) => updateSlot(index, { stageName: e.target.value })}
                   placeholder="Main Stage"
-                  className="w-full bg-secondary/80 border border-border/50 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-setdrift-gold"
+                  className="w-full bg-zinc-900/90 border border-zinc-700/80 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-setdrift-gold placeholder:text-zinc-500 shadow-inner"
                 />
               </div>
 
@@ -378,7 +378,7 @@ export default function FestivalPage() {
                   value={slot.startTime || ''}
                   onChange={(e) => updateSlot(index, { startTime: e.target.value })}
                   placeholder="20:00"
-                  className="w-full bg-secondary/80 border border-border/50 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-setdrift-gold"
+                  className="w-full bg-zinc-900/90 border border-zinc-700/80 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-setdrift-gold placeholder:text-zinc-500 shadow-inner"
                 />
               </div>
 
@@ -389,7 +389,7 @@ export default function FestivalPage() {
                 <select
                   value={slot.trackCount}
                   onChange={(e) => updateSlot(index, { trackCount: parseInt(e.target.value, 10) })}
-                  className="w-full bg-secondary/80 border border-border/50 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-setdrift-gold font-bold"
+                  className="w-full bg-zinc-900/90 border border-zinc-700/80 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-setdrift-gold font-bold shadow-inner"
                 >
                   <option value={4}>4 Songs (Opening Act)</option>
                   <option value={6}>6 Songs (~25 min)</option>
