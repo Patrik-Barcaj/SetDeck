@@ -103,19 +103,13 @@ export interface ConcertEvent {
   city: string;
   country: string;
   date: string;
+  isoDate?: string;
+  formattedDate?: string;
+  daysUntil?: number;
+  isSoon?: boolean;
   tourName?: string;
   artistImageUrl?: string;
+  genres?: string[];
   distanceKm?: number;
-}
-
-export interface FestivalArtistSlot {
-  artistMbid: string;
-  artistName: string;
-  imageUrl?: string;
-  stageName?: string;
-  startTime?: string;
-  endTime?: string;
-  trackCount: number;
-  tracks?: AggregatedTrack[];
 }
 
