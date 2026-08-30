@@ -201,5 +201,34 @@ describe('aggregateTracks', () => {
     const festivalResult = aggregateTracks(mockShows, { mode: 'festival', targetTrackCount: 10 });
     expect(festivalResult.length).toBe(10);
   });
+
+  it('filters out ultra low likelihood tracks (10% or below) when multiple shows exist', () => {
+    // 10 shows where Song A is in all 10 (100%), Song B in 5 (50%), Song C in 2 (20%), and Song D in only 1 (10%)
+    const mockShows: SetlistShow[] = Array.from({ length: 10 }, (_, i) => ({
+      id: `${i + 1}`,
+      eventDate: `0${(i % 9) + 1}-01-2026`,
+      venue: { id: 'v1', name: 'V', city: { name: 'C', country: { code: 'US', name: 'US' } } },
+      sets: {
+        set: [
+          {
+            song: [
+              { name: 'Song A' },
+              ...(i < 5 ? [{ name: 'Song B' }] : []),
+              ...(i < 2 ? [{ name: 'Song C' }] : []),
+              ...(i === 0 ? [{ name: 'One-off Rare Song D' }] : []),
+            ],
+          },
+        ],
+      },
+    }));
+
+    const result = aggregateTracks(mockShows);
+    expect(result.find((t) => t.id === 'song a')).toBeDefined();
+    expect(result.find((t) => t.id === 'song b')).toBeDefined();
+    expect(result.find((t) => t.id === 'song c')).toBeDefined();
+    // 10% likelihood song should be filtered out
+    expect(result.find((t) => t.id === 'one-off rare song d')).toBeUndefined();
+    expect(result.length).toBe(3);
+  });
 });
 

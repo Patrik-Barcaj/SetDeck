@@ -29,6 +29,7 @@ function normalizeKey(name: string): string {
 export interface AggregateOptions {
   mode?: 'headline' | 'festival';
   targetTrackCount?: number;
+  minLikelihood?: number;
 }
 
 export function aggregateTracks(shows: SetlistShow[], options?: AggregateOptions): AggregatedTrack[] {
@@ -168,6 +169,16 @@ export function aggregateTracks(shows: SetlistShow[], options?: AggregateOptions
       tourEvolution,
     };
   });
+
+  // Filter out low-likelihood tracks (10% or below) when multiple shows exist to eliminate one-off noise
+  const minLikelihood = options?.minLikelihood ?? 10;
+  if (totalShows >= 2) {
+    const meaningfulTracks = aggregated.filter((t) => t.likelihood > minLikelihood);
+    // If filtering leaves tracks, use the filtered set
+    if (meaningfulTracks.length > 0) {
+      aggregated = meaningfulTracks;
+    }
+  }
 
   // Order resolution: Maintain relative concert progression
   aggregated.sort((a, b) => {
