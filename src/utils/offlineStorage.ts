@@ -39,6 +39,14 @@ function openDB(): Promise<IDBDatabase | null> {
   });
 }
 
+function notifyStorageChange(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.dispatchEvent(new CustomEvent('setdrift_storage_change'));
+    window.dispatchEvent(new Event('storage'));
+  } catch {}
+}
+
 export function getOfflineSetlist(mbid: string): SetlistData | null {
   if (typeof window === 'undefined' || !mbid) return null;
   try {
@@ -97,6 +105,20 @@ export function saveOfflineSetlist(data: SetlistData): void {
     console.warn('Failed to save offline setlist to localStorage:', e);
   }
 
+  // Also sync to recent searches for consistency
+  try {
+    const storedSearches = localStorage.getItem('setdrift_recent_searches');
+    const list: Array<{ id: string; name: string; imageUrl?: string }> = storedSearches ? JSON.parse(storedSearches) : [];
+    const firstTrackImage = data.tracks?.find((t) => t.albumImageUrl)?.albumImageUrl;
+    const updatedSearches = [
+      { id: data.mbid, name: data.artistName, imageUrl: firstTrackImage },
+      ...list.filter((s) => s.id !== data.mbid),
+    ].slice(0, OFFLINE_MAX_SETLISTS);
+    localStorage.setItem('setdrift_recent_searches', JSON.stringify(updatedSearches));
+  } catch {}
+
+  notifyStorageChange();
+
   // Persist to IndexedDB asynchronously
   openDB().then((db) => {
     if (!db) return;
@@ -127,6 +149,8 @@ export function getAllOfflineSetlists(): SetlistData[] {
 
 export function removeOfflineSetlist(mbid: string): void {
   if (typeof window === 'undefined' || !mbid) return;
+
+  // 1. Remove from offline setlist stores
   try {
     localStorage.removeItem(`${OFFLINE_SETLISTS_KEY}_${mbid}`);
     const indexRaw = localStorage.getItem(OFFLINE_SETLISTS_KEY);
@@ -139,6 +163,19 @@ export function removeOfflineSetlist(mbid: string): void {
     console.warn('Failed to remove offline setlist from localStorage:', e);
   }
 
+  // 2. Also remove from recent searches store
+  try {
+    const storedSearches = localStorage.getItem('setdrift_recent_searches');
+    if (storedSearches) {
+      const list: Array<{ id: string; name: string; imageUrl?: string }> = JSON.parse(storedSearches);
+      const updatedSearches = list.filter((s) => s.id !== mbid);
+      localStorage.setItem('setdrift_recent_searches', JSON.stringify(updatedSearches));
+    }
+  } catch {}
+
+  notifyStorageChange();
+
+  // 3. Remove from IndexedDB
   openDB().then((db) => {
     if (!db) return;
     try {
@@ -148,4 +185,3 @@ export function removeOfflineSetlist(mbid: string): void {
     } catch {}
   });
 }
-

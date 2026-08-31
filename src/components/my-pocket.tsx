@@ -1,29 +1,39 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAllOfflineSetlists } from '@/utils/offlineStorage';
+import { getAllOfflineSetlists, removeOfflineSetlist } from '@/utils/offlineStorage';
 import { SetlistData } from '@/types';
-import { Bookmark, Play, ChevronRight } from 'lucide-react';
+import { Bookmark, Play, ChevronRight, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function MyStagePocket() {
   const [pocketSets, setPocketSets] = useState<SetlistData[]>([]);
   const router = useRouter();
 
+  const loadSets = useCallback(() => {
+    setPocketSets(getAllOfflineSetlists());
+  }, []);
+
   useEffect(() => {
-    const loaded = getAllOfflineSetlists();
-    setPocketSets(loaded);
+    loadSets();
 
     const handleStorageChange = () => {
-      setPocketSets(getAllOfflineSetlists());
+      loadSets();
     };
 
     window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('setdrift_storage_change', handleStorageChange);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('setdrift_storage_change', handleStorageChange);
     };
-  }, []);
+  }, [loadSets]);
+
+  const handleDelete = (e: React.MouseEvent, mbid: string) => {
+    e.stopPropagation();
+    removeOfflineSetlist(mbid);
+  };
 
   if (pocketSets.length === 0) {
     return null;
@@ -91,6 +101,16 @@ export function MyStagePocket() {
                   {set.region} Tour
                 </span>
               </div>
+
+              {/* Top right quick delete button */}
+              <button
+                type="button"
+                onClick={(e) => handleDelete(e, set.mbid)}
+                className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-black/60 backdrop-blur-md text-zinc-400 hover:text-rose-400 hover:bg-black/80 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Remove from Pocket"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
 
               {/* Bottom-left Content */}
               <div className="absolute bottom-3.5 left-3.5 right-12 pointer-events-none">

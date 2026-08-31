@@ -1,18 +1,85 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
+import { getAllOfflineSetlists, removeOfflineSetlist } from '@/utils/offlineStorage';
+import { SetlistData } from '@/types';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Library, Disc, ArrowRight, Music, Trash2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
+interface UnifiedSavedItem {
+  id: string; // mbid
+  name: string;
+  imageUrl?: string;
+  tourName?: string;
+  trackCount?: number;
+}
+
 export default function SavedPage() {
   const { recentSearches, removeSearch } = useRecentSearches();
+  const [offlineSets, setOfflineSets] = useState<SetlistData[]>([]);
   const router = useRouter();
+
+  const loadOfflineSets = useCallback(() => {
+    setOfflineSets(getAllOfflineSetlists());
+  }, []);
+
+  useEffect(() => {
+    loadOfflineSets();
+
+    const handleStorageChange = () => {
+      loadOfflineSets();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('setdrift_storage_change', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('setdrift_storage_change', handleStorageChange);
+    };
+  }, [loadOfflineSets]);
+
+  // Combine offline sets and recent searches into a deduplicated list
+  const unifiedItems: UnifiedSavedItem[] = [];
+  const seenIds = new Set<string>();
+
+  // 1. First add full offline setlists (richer metadata)
+  offlineSets.forEach((set) => {
+    if (!seenIds.has(set.mbid)) {
+      seenIds.add(set.mbid);
+      const firstTrackImage = set.tracks?.find((t) => t.albumImageUrl)?.albumImageUrl;
+      unifiedItems.push({
+        id: set.mbid,
+        name: set.artistName,
+        imageUrl: firstTrackImage,
+        tourName: set.tourName,
+        trackCount: set.tracks?.length,
+      });
+    }
+  });
+
+  // 2. Add any additional recent searches
+  recentSearches.forEach((search) => {
+    if (!seenIds.has(search.id)) {
+      seenIds.add(search.id);
+      unifiedItems.push({
+        id: search.id,
+        name: search.name,
+        imageUrl: search.imageUrl,
+      });
+    }
+  });
+
+  const handleDeleteItem = (id: string) => {
+    removeOfflineSetlist(id);
+    removeSearch(id);
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground pt-16 pb-28 px-4 max-w-lg mx-auto flex flex-col gap-6">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between"
@@ -28,23 +95,24 @@ export default function SavedPage() {
         </div>
       </motion.div>
 
-      {recentSearches.length > 0 ? (
-        <motion.div 
+      {unifiedItems.length > 0 ? (
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="flex flex-col gap-2.5"
         >
-          {recentSearches.map((search) => (
+          {unifiedItems.map((item) => (
             <div
-              key={search.id}
-              onClick={() => router.push(`/setlist/${search.id}?artistName=${encodeURIComponent(search.name)}`)}
+              key={item.id}
+              onClick={() => router.push(`/setlist/${item.id}?artistName=${encodeURIComponent(item.name)}`)}
               className="flex items-center justify-between p-3.5 rounded-2xl bg-secondary/40 border border-border/40 hover:border-setdrift-gold/50 hover:bg-secondary/70 transition-all cursor-pointer group shadow-sm"
             >
               <div className="flex items-center gap-3.5 min-w-0">
-                {search.imageUrl ? (
+                {item.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={search.imageUrl}
-                    alt={search.name}
+                    src={item.imageUrl}
+                    alt={item.name}
                     className="w-12 h-12 rounded-xl object-cover border border-border shrink-0 group-hover:scale-105 transition-transform"
                   />
                 ) : (
@@ -54,20 +122,26 @@ export default function SavedPage() {
                 )}
                 <div className="min-w-0">
                   <h3 className="font-bold text-sm truncate group-hover:text-setdrift-gold transition-colors">
-                    {search.name}
+                    {item.name}
                   </h3>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
                     <Music className="w-3 h-3 text-setdrift-gold" />
-                    <span>Live Warm-Up Setlist</span>
+                    <span>{item.tourName || 'Live Warm-Up Setlist'}</span>
+                    {typeof item.trackCount === 'number' && (
+                      <span className="text-[10px] bg-secondary/80 px-1.5 py-0.2 rounded font-medium">
+                        {item.trackCount} tracks
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-1">
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    removeSearch(search.id);
+                    handleDeleteItem(item.id);
                   }}
                   className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                   title="Remove"
@@ -82,7 +156,7 @@ export default function SavedPage() {
           ))}
         </motion.div>
       ) : (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center justify-center text-center p-8 rounded-3xl bg-secondary/20 border border-border/40 mt-12 gap-4"
