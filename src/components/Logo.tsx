@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 interface LogoProps {
   className?: string;
   size?: number;
@@ -5,21 +7,13 @@ interface LogoProps {
 
 export function Logo({ className, size = 28 }: LogoProps) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 1000 1000"
+    <Image
+      src="/saArtboard 1@0.75x.png"
+      alt="SetDrift logo"
       width={size}
       height={size}
-      className={className}
-      aria-label="SetDrift logo"
-    >
-      <rect width="1000" height="1000" rx="200" fill="#000000" />
-      {/* Track 1 (Top) */}
-      <rect x="200" y="200" width="480" height="120" rx="60" fill="#C86400" />
-      {/* Track 2 (Middle - Offset / Drift) */}
-      <rect x="320" y="440" width="480" height="120" rx="60" fill="#E1960F" />
-      {/* Track 3 (Bottom) */}
-      <rect x="200" y="680" width="480" height="120" rx="60" fill="#FAC81E" />
-    </svg>
+      className={`rounded-lg object-contain ${className || ''}`}
+      priority
+    />
   );
 }

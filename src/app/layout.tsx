@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   description: 'Convert Setlist.fm concerts to Spotify playlists.',
   manifest: '/manifest.json',
   icons: [
-    { rel: 'icon', url: '/logo.svg', type: 'image/svg+xml' },
-    { rel: 'apple-touch-icon', url: '/icon-192.svg' },
+    { rel: 'icon', url: '/saArtboard 1@0.75x.png', type: 'image/png' },
+    { rel: 'apple-touch-icon', url: '/saArtboard 1@0.75x.png' },
   ],
 };
 
