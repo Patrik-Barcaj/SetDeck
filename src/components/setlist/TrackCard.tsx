@@ -162,14 +162,14 @@ export function TrackCard({ track, onRemove, onToggleExclude }: TrackCardProps) 
               </span>
             )}
             {track.tourEvolution && !isExcluded && !track.isOpener && !track.isCloser && (
-              <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${
+              <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border uppercase tracking-wider ${
                 track.tourEvolution === 'NEW TO TOUR'
-                  ? 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30'
+                  ? 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.15)]'
                   : track.tourEvolution === 'TOUR STAPLE'
-                  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                  : 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30'
+                  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.15)]'
+                  : 'bg-amber-500/15 text-amber-300 border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.15)]'
               }`}>
-                {track.tourEvolution === 'NEW TO TOUR' ? 'New' : track.tourEvolution === 'TOUR STAPLE' ? 'Staple' : 'Rotating'}
+                {track.tourEvolution}
               </span>
             )}
           </div>

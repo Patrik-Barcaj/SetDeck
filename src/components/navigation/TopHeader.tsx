@@ -16,6 +16,8 @@ export function TopHeader() {
     ? ''
     : pathname.startsWith('/setlist/')
     ? 'Setlist Studio'
+    : pathname === '/festival'
+    ? 'Festival Timetable'
     : pathname === '/radar'
     ? 'Concerts Radar'
     : pathname === '/saved'

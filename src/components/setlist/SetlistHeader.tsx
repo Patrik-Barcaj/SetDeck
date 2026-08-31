@@ -41,26 +41,26 @@ export function SetlistHeader() {
           <button
             type="button"
             onClick={() => setMode('headline')}
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
               mode === 'headline'
-                ? 'bg-setdrift-gold text-black shadow-sm'
+                ? 'bg-setdrift-gold text-black shadow-sm font-extrabold'
                 : 'text-muted-foreground hover:text-white'
             }`}
           >
             <Sparkles className="w-3 h-3" />
-            <span>Headline (Full)</span>
+            <span>Headline Show (~90-120 min)</span>
           </button>
           <button
             type="button"
             onClick={() => setMode('festival')}
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
               mode === 'festival'
-                ? 'bg-setdrift-gold text-black shadow-sm'
+                ? 'bg-setdrift-gold text-black shadow-sm font-extrabold'
                 : 'text-muted-foreground hover:text-white'
             }`}
           >
             <Tent className="w-3 h-3" />
-            <span>Festival (45-60m)</span>
+            <span>Festival Slot (~50 min)</span>
           </button>
         </div>
       </div>
