@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAllOfflineSetlists, removeOfflineSetlist } from '@/utils/offlineStorage';
 import { SetlistData } from '@/types';
-import { Bookmark, Play, ChevronRight, Trash2 } from 'lucide-react';
+import { Bookmark, Play, ChevronRight, Trash2, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function MyStagePocket() {
@@ -39,6 +39,10 @@ export function MyStagePocket() {
     return null;
   }
 
+  // Display only the last 6 setlists on the home screen
+  const displayedSets = pocketSets.slice(0, 6);
+  const hasMore = pocketSets.length > 6;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -68,9 +72,9 @@ export function MyStagePocket() {
         </button>
       </div>
 
-      {/* Horizontal Scrollable Visual Tiles */}
+      {/* Horizontal Scrollable Visual Tiles (max 6) */}
       <div className="flex gap-4 overflow-x-auto pb-3 pt-1 scrollbar-none snap-x snap-mandatory">
-        {pocketSets.map((set) => {
+        {displayedSets.map((set) => {
           const firstTrackWithImage = set.tracks?.find((t) => t.albumImageUrl);
           const coverImage =
             firstTrackWithImage?.albumImageUrl ||
@@ -129,6 +133,24 @@ export function MyStagePocket() {
             </div>
           );
         })}
+
+        {/* Optional View All Card if > 6 items */}
+        {hasMore && (
+          <div
+            onClick={() => router.push('/saved')}
+            className="flex-shrink-0 w-44 h-56 rounded-2xl overflow-hidden relative group border border-dashed border-white/15 hover:border-amber-500/50 bg-[#161820]/60 hover:bg-[#161820] flex flex-col items-center justify-center text-center p-4 cursor-pointer transition-all duration-300 snap-start"
+          >
+            <div className="w-10 h-10 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-3 group-hover:scale-110 transition-transform">
+              <ArrowRight className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-bold text-white group-hover:text-amber-300 transition-colors">
+              View All
+            </span>
+            <span className="text-xs text-zinc-400 mt-0.5 font-medium">
+              +{pocketSets.length - 6} more sets
+            </span>
+          </div>
+        )}
       </div>
     </motion.div>
   );
