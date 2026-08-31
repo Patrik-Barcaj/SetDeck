@@ -106,7 +106,7 @@ export function MyStagePocket() {
               <button
                 type="button"
                 onClick={(e) => handleDelete(e, set.mbid)}
-                className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-black/60 backdrop-blur-md text-zinc-400 hover:text-rose-400 hover:bg-black/80 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-black/70 backdrop-blur-md text-zinc-400 hover:text-rose-400 active:text-rose-400 hover:bg-black/90 border border-white/10 opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-all z-20"
                 title="Remove from Pocket"
               >
                 <Trash2 className="w-3.5 h-3.5" />

@@ -185,3 +185,32 @@ export function removeOfflineSetlist(mbid: string): void {
     } catch {}
   });
 }
+
+export function clearAllOfflineSetlists(): void {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const indexRaw = localStorage.getItem(OFFLINE_SETLISTS_KEY);
+    if (indexRaw) {
+      const indexList: string[] = JSON.parse(indexRaw);
+      indexList.forEach((mbid) => {
+        localStorage.removeItem(`${OFFLINE_SETLISTS_KEY}_${mbid}`);
+      });
+    }
+    localStorage.removeItem(OFFLINE_SETLISTS_KEY);
+    localStorage.removeItem('setdrift_recent_searches');
+  } catch (e) {
+    console.warn('Failed to clear offline setlists from localStorage:', e);
+  }
+
+  notifyStorageChange();
+
+  openDB().then((db) => {
+    if (!db) return;
+    try {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.clear();
+    } catch {}
+  });
+}
