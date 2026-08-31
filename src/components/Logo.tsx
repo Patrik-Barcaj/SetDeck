@@ -15,11 +15,11 @@ export function Logo({ className, size = 28 }: LogoProps) {
     >
       <rect width="1000" height="1000" rx="200" fill="#000000" />
       {/* Track 1 (Top) */}
-      <rect x="50" y="50" width="720" height="180" rx="90" fill="#C86400" />
+      <rect x="200" y="200" width="480" height="120" rx="60" fill="#C86400" />
       {/* Track 2 (Middle - Offset / Drift) */}
-      <rect x="230" y="410" width="720" height="180" rx="90" fill="#E1960F" />
+      <rect x="320" y="440" width="480" height="120" rx="60" fill="#E1960F" />
       {/* Track 3 (Bottom) */}
-      <rect x="50" y="770" width="720" height="180" rx="90" fill="#FAC81E" />
+      <rect x="200" y="680" width="480" height="120" rx="60" fill="#FAC81E" />
     </svg>
   );
 }
