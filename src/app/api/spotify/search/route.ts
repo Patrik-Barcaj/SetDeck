@@ -7,8 +7,8 @@ const SPOTIFY_API_URL = 'https://api.spotify.com/v1';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const q = searchParams.get('q');
-  const artist = searchParams.get('artist') || '';
+  const q = (searchParams.get('q') || '').trim();
+  const artist = (searchParams.get('artist') || searchParams.get('artistName') || '').trim();
 
   if (!q) {
     return NextResponse.json({ tracks: [] });
@@ -19,19 +19,48 @@ export async function GET(request: Request) {
     const token = session?.accessToken || (await getClientCredentialsToken());
 
     if (token) {
-      const url = `${SPOTIFY_API_URL}/search?q=${encodeURIComponent(q)}&type=track&limit=5`;
-      const res = await fetch(url, {
+      // 1. First try strictly scoping: "track:TITLE artist:ARTIST"
+      const scopedQuery = artist ? `track:${q} artist:${artist}` : q;
+      let url = `${SPOTIFY_API_URL}/search?q=${encodeURIComponent(scopedQuery)}&type=track&limit=10`;
+      let res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        const items = data.tracks?.items || [];
-        if (items.length > 0) {
-          return NextResponse.json({ tracks: items });
+      let data = res.ok ? await res.json() : null;
+      let items = data?.tracks?.items || [];
+
+      // 2. Fallback: if strict field filter was too restrictive, try "ARTIST TITLE"
+      if (items.length === 0 && artist) {
+        url = `${SPOTIFY_API_URL}/search?q=${encodeURIComponent(`${artist} ${q}`)}&type=track&limit=10`;
+        res = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.ok) {
+          data = await res.json();
+          items = data?.tracks?.items || [];
         }
+      }
+
+      // 3. Fallback: generic query if still empty
+      if (items.length === 0) {
+        url = `${SPOTIFY_API_URL}/search?q=${encodeURIComponent(q)}&type=track&limit=10`;
+        res = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.ok) {
+          data = await res.json();
+          items = data?.tracks?.items || [];
+        }
+      }
+
+      if (items.length > 0) {
+        return NextResponse.json({ tracks: items });
       }
     }
 
@@ -58,4 +87,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ tracks: [] });
   }
 }
-
