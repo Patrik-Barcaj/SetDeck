@@ -6,10 +6,13 @@ interface ArtistCardProps {
   name: string;
   imageUrl?: string;
   genres?: string[];
+  disambiguation?: string;
   onClick: () => void;
 }
 
-export function ArtistCard({ name, imageUrl, genres, onClick }: ArtistCardProps) {
+export function ArtistCard({ name, imageUrl, genres, disambiguation, onClick }: ArtistCardProps) {
+  const subtitle = disambiguation || (genres && genres.length > 0 ? genres.slice(0, 3).join(', ') : undefined);
+
   return (
     <button
       onClick={onClick}
@@ -19,16 +22,16 @@ export function ArtistCard({ name, imageUrl, genres, onClick }: ArtistCardProps)
         {imageUrl ? (
           <Image src={imageUrl} alt={name} fill className="object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground font-bold text-lg">
             ?
           </div>
         )}
       </div>
       <div className="flex-1 overflow-hidden">
         <h3 className="text-lg font-bold truncate">{name}</h3>
-        {genres && genres.length > 0 && (
+        {subtitle && (
           <p className="text-sm text-muted-foreground truncate">
-            {genres.slice(0, 3).join(', ')}
+            {subtitle}
           </p>
         )}
       </div>

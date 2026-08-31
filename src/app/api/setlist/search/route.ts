@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     }> = [];
 
     try {
-      spotifyResults = await searchSpotifyArtists(q, session?.accessToken) || [];
+      spotifyResults = (await searchSpotifyArtists(q, session?.accessToken)) || [];
     } catch {
       // Spotify search failed (429, etc.) — proceed without it
     }
@@ -77,11 +77,12 @@ export async function GET(request: Request) {
 
 async function searchSetlistFm(query: string): Promise<SetlistFmArtist[]> {
   try {
+    const apiKey = process.env.SETLISTFM_API_KEY || '';
     const res = await fetch(
       `${SETLISTFM_BASE_URL}/search/artists?artistName=${encodeURIComponent(query)}&p=1&sort=relevance`,
       {
         headers: {
-          'x-api-key': process.env.SETLISTFM_API_KEY!,
+          'x-api-key': apiKey,
           Accept: 'application/json',
         },
       }
@@ -94,7 +95,34 @@ async function searchSetlistFm(query: string): Promise<SetlistFmArtist[]> {
     }
 
     const data = await res.json();
-    return (data.artist || []).slice(0, 5);
+    const artists: SetlistFmArtist[] = data.artist || [];
+    if (artists.length === 0) return [];
+
+    // If only 1 artist returned, return immediately
+    if (artists.length === 1) return artists;
+
+    // Check show counts in parallel to bubble up active touring artists with valid shows
+    const candidates = artists.slice(0, 8);
+    const ranked = await Promise.all(
+      candidates.map(async (artist) => {
+        try {
+          const showRes = await fetch(`${SETLISTFM_BASE_URL}/artist/${artist.mbid}/setlists?p=1`, {
+            headers: {
+              'x-api-key': apiKey,
+              Accept: 'application/json',
+            },
+          });
+          if (!showRes.ok) return { ...artist, totalShows: 0 };
+          const showData = await showRes.json();
+          return { ...artist, totalShows: showData.total || 0 };
+        } catch {
+          return { ...artist, totalShows: 0 };
+        }
+      })
+    );
+
+    ranked.sort((a, b) => b.totalShows - a.totalShows);
+    return ranked.slice(0, 5);
   } catch (e) {
     console.warn('Setlist.fm search error:', e);
     return [];

@@ -53,8 +53,35 @@ export async function GET(
   }
 
   try {
-    const { shows, artistName } = await fetchLast10Shows(targetMbid);
+    let { shows, artistName } = await fetchLast10Shows(targetMbid);
+    let finalMbid = targetMbid;
     
+    // If target MBID had 0 shows, try to rescue via artistName search
+    if (shows.length === 0 && queryArtistName) {
+      try {
+        const apiKey = process.env.SETLISTFM_API_KEY || '';
+        const searchRes = await fetch(
+          `https://api.setlist.fm/rest/1.0/search/artists?artistName=${encodeURIComponent(queryArtistName)}&p=1`,
+          { headers: { 'x-api-key': apiKey, Accept: 'application/json' } }
+        );
+        if (searchRes.ok) {
+          const sData = await searchRes.json();
+          const candidates = (sData.artist || []).filter((a: { mbid: string }) => a.mbid !== targetMbid);
+          for (const cand of candidates.slice(0, 4)) {
+            const fallback = await fetchLast10Shows(cand.mbid);
+            if (fallback.shows.length > 0) {
+              shows = fallback.shows;
+              artistName = fallback.artistName || queryArtistName;
+              finalMbid = cand.mbid;
+              break;
+            }
+          }
+        }
+      } catch (fallbackErr) {
+        console.warn('Fallback artist rescue failed:', fallbackErr);
+      }
+    }
+
     if (shows.length === 0) {
       return NextResponse.json({ error: 'No recent valid shows found' }, { status: 404 });
     }
@@ -186,7 +213,7 @@ export async function GET(
       .filter((e) => e.count > 0);
 
     const data: SetlistData = {
-      mbid,
+      mbid: finalMbid || mbid,
       artistName: resolvedArtistName,
       tourName,
       tracks: hydratedTracks,

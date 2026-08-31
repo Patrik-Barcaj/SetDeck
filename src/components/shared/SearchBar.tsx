@@ -105,6 +105,7 @@ export function SearchBar() {
                 key={artist.id}
                 name={artist.name}
                 genres={artist.genres}
+                disambiguation={artist.disambiguation}
                 imageUrl={artist.images?.[0]?.url}
                 onClick={() => handleSelectArtist(artist)}
               />

@@ -17,11 +17,12 @@ export async function GET(request: Request) {
 
   // 1. Try Setlist.fm search
   try {
+    const apiKey = process.env.SETLISTFM_API_KEY || '';
     const res = await fetch(
       `${SETLISTFM_BASE_URL}/search/artists?artistName=${encodeURIComponent(artistName)}&p=1`,
       {
         headers: {
-          'x-api-key': process.env.SETLISTFM_API_KEY || '',
+          'x-api-key': apiKey,
           Accept: 'application/json',
         },
       }
@@ -30,11 +31,35 @@ export async function GET(request: Request) {
     if (res.ok) {
       const data = await res.json();
       if (data.artist && data.artist.length > 0) {
-        const exactMatch = data.artist.find(
+        const exactMatches = data.artist.filter(
           (a: Artist) => a.name.toLowerCase() === artistName.toLowerCase()
         );
-        const mbid = exactMatch ? exactMatch.mbid : data.artist[0].mbid;
-        return NextResponse.json({ mbid });
+        const candidates: Artist[] = exactMatches.length > 0 ? exactMatches : data.artist.slice(0, 5);
+
+        if (candidates.length === 1) {
+          return NextResponse.json({ mbid: candidates[0].mbid });
+        }
+
+        // Rank multiple candidate MBIDs by their actual live show count on Setlist.fm
+        const ranked = await Promise.all(
+          candidates.map(async (c: Artist) => {
+            try {
+              const showRes = await fetch(`${SETLISTFM_BASE_URL}/artist/${c.mbid}/setlists?p=1`, {
+                headers: {
+                  'x-api-key': apiKey,
+                  Accept: 'application/json',
+                },
+              });
+              if (!showRes.ok) return { mbid: c.mbid, total: 0 };
+              const d = await showRes.json();
+              return { mbid: c.mbid, total: d.total || 0 };
+            } catch {
+              return { mbid: c.mbid, total: 0 };
+            }
+          })
+        );
+        ranked.sort((a, b) => b.total - a.total);
+        return NextResponse.json({ mbid: ranked[0].mbid });
       }
     }
   } catch (sfmErr) {

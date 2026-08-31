@@ -9,6 +9,7 @@ export interface ArtistResult {
   images: { url: string; height: number; width: number }[];
   genres: string[];
   mbid?: string;
+  disambiguation?: string;
 }
 
 export interface SetlistTrack {
