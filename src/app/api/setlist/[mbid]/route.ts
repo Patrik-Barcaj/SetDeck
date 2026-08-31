@@ -22,7 +22,25 @@ export async function GET(
   const queryArtistName = (searchParams.get('artistName') || searchParams.get('artist') || '').trim();
   const modeParam = searchParams.get('mode') === 'festival' ? 'festival' : 'headline';
 
-  const cacheKey = `setlist:artist:${mbid}:last10:${modeParam}`;
+  let targetMbid = mbid;
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mbid);
+  if (!isUuid) {
+    try {
+      const resolveName = queryArtistName || decodeURIComponent(mbid);
+      const resolveRes = await fetch(
+        `https://musicbrainz.org/ws/2/artist/?query=artist:${encodeURIComponent(resolveName)}&fmt=json`,
+        { headers: { 'User-Agent': 'SetDrift/1.0 (contact@setdrift.app)', Accept: 'application/json' } }
+      );
+      if (resolveRes.ok) {
+        const mbData = await resolveRes.json();
+        if (mbData.artists && mbData.artists.length > 0) {
+          targetMbid = mbData.artists[0].id;
+        }
+      }
+    } catch {}
+  }
+
+  const cacheKey = `setlist:artist:${targetMbid}:last10:${modeParam}`;
 
   // Check 12-hour Redis cache upfront
   try {
@@ -35,7 +53,7 @@ export async function GET(
   }
 
   try {
-    const { shows, artistName } = await fetchLast10Shows(mbid);
+    const { shows, artistName } = await fetchLast10Shows(targetMbid);
     
     if (shows.length === 0) {
       return NextResponse.json({ error: 'No recent valid shows found' }, { status: 404 });

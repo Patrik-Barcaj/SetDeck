@@ -41,26 +41,30 @@ export function SearchBar() {
   const handleSelectArtist = async (artist: ArtistResult) => {
     setIsLoading(true);
     try {
-      // If the search result already has an mbid (from setlist.fm), use it directly
-      const mbid = (artist as ArtistResult & { mbid?: string }).mbid;
-      if (mbid) {
+      const isUuid = (val?: string) => Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val));
+      const directMbid = isUuid(artist.mbid) ? artist.mbid : (isUuid(artist.id) ? artist.id : undefined);
+
+      if (directMbid) {
         const imageUrl = artist.images && artist.images.length > 0 ? artist.images[0].url : undefined;
-        addSearch({ id: mbid, name: artist.name, imageUrl });
-        router.push(`/setlist/${mbid}?artistName=${encodeURIComponent(artist.name)}`);
+        addSearch({ id: directMbid, name: artist.name, imageUrl });
+        router.push(`/setlist/${directMbid}?artistName=${encodeURIComponent(artist.name)}`);
         return;
       }
 
-      // Fallback: resolve via setlist.fm API
+      // Fallback: resolve via setlist.fm API / MusicBrainz
       const res = await fetch(`/api/setlist/resolve?artistName=${encodeURIComponent(artist.name)}`);
       if (!res.ok) {
-        if (res.status === 404) {
-          toast.error("Artist not found on Setlist.fm");
-          setIsLoading(false);
-          return;
-        }
-        throw new Error('Resolve failed');
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.error || "Artist not found on Setlist.fm");
+        setIsLoading(false);
+        return;
       }
       const data = await res.json();
+      if (!data.mbid) {
+        toast.error("Could not find setlist data for this artist");
+        setIsLoading(false);
+        return;
+      }
       
       const imageUrl = artist.images && artist.images.length > 0 ? artist.images[0].url : undefined;
       addSearch({ id: data.mbid, name: artist.name, imageUrl });
