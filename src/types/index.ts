@@ -10,6 +10,7 @@ export interface ArtistResult {
   genres: string[];
   mbid?: string;
   disambiguation?: string;
+  totalShows?: number;
 }
 
 export interface SetlistTrack {

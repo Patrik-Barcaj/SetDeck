@@ -9,6 +9,7 @@ interface SetlistFmArtist {
   name: string;
   sortName?: string;
   disambiguation?: string;
+  totalShows?: number;
 }
 
 export async function GET(request: Request) {
@@ -52,6 +53,7 @@ export async function GET(request: Request) {
           genres: spotifyMatch?.genres || [],
           images: spotifyMatch?.images || [],
           disambiguation: sfm.disambiguation || '',
+          totalShows: sfm.totalShows,
         };
       });
       return NextResponse.json(merged);

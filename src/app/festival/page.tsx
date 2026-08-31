@@ -324,31 +324,42 @@ export default function FestivalPage() {
             {/* Live Search Dropdown */}
             {searchQuery.trim() && searchResults.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/80 rounded-2xl shadow-2xl overflow-hidden z-50 p-2">
-                {searchResults.map((result) => (
-                  <div
-                    key={result.id}
-                    onClick={() => addArtistToLineup(result.name, (result as ArtistResult & { mbid?: string }).mbid, result.images?.[0]?.url)}
-                    className="flex items-center justify-between p-2.5 rounded-xl hover:bg-secondary/70 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      {result.images?.[0]?.url ? (
-                        <img src={result.images[0].url} alt={result.name} className="w-9 h-9 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center font-bold text-xs text-muted-foreground">
-                          {result.name[0]}
+                {searchResults.map((result) => {
+                  const directMbid = result.mbid || (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(result.id) ? result.id : undefined);
+                  const subtitle = result.disambiguation || (result.genres?.join(', ') || 'Artist');
+                  return (
+                    <div
+                      key={result.id}
+                      onClick={() => addArtistToLineup(result.name, directMbid, result.images?.[0]?.url)}
+                      className="flex items-center justify-between p-2.5 rounded-xl hover:bg-secondary/70 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        {result.images?.[0]?.url ? (
+                          <img src={result.images[0].url} alt={result.name} className="w-9 h-9 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center font-bold text-xs text-muted-foreground">
+                            {result.name[0]}
+                          </div>
+                        )}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-bold text-white">{result.name}</h4>
+                            {typeof result.totalShows === 'number' && result.totalShows > 0 && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-400">
+                                {result.totalShows} shows
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground truncate max-w-xs">{subtitle}</p>
                         </div>
-                      )}
-                      <div>
-                        <h4 className="text-sm font-bold text-white">{result.name}</h4>
-                        <p className="text-[11px] text-muted-foreground truncate max-w-xs">{result.genres?.join(', ') || 'Artist'}</p>
                       </div>
+                      <button className="p-1.5 rounded-lg bg-setdrift-gold/15 text-setdrift-gold text-xs font-bold flex items-center gap-1">
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add</span>
+                      </button>
                     </div>
-                    <button className="p-1.5 rounded-lg bg-setdrift-gold/15 text-setdrift-gold text-xs font-bold flex items-center gap-1">
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add</span>
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
